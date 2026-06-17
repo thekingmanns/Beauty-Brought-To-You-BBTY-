@@ -1,0 +1,363 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=JetBrains+Mono:ital,wght@0,300..700;1,300..700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Plus Jakarta Sans", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Playfair Display", Georgia, serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  /* Brand Accents */
+  --color-brand-purple: #5c5fc5;
+  --color-brand-pink: #ec4899;
+  --color-brand-cyan: #4c9488;
+  --color-brand-blue: #3b82f6;
+  
+  /* Retain print variables */
+  --color-print-sage: #7A8D76;
+}
+
+/* Global resets for high-end digital agency vibe */
+@variant dark (&:where(.dark, .dark *));
+
+html, body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  background-color: #f8fafc; /* Sleek, crisp slate-50 */
+  color: #0f172a; /* Deep, luxury slate-900 */
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 200ms;
+  font-weight: 700 !important;
+}
+
+/* Force all key text components and typography to bold */
+p, span, li, a, label, input, select, textarea, button, td, th, blockquote, dt, dd {
+  font-weight: 700 !important;
+}
+
+h1, h2, h3, h4, h5, h6, strong {
+  font-weight: 900 !important;
+}
+
+.dark body {
+  background-color: #090d16; /* premium off-black dark blue slate */
+  color: #f1f5f9;
+}
+
+/* ==========================================================================
+   HIGH CONTRAST MODE (A11Y ACCESSIBILITY COMPLIANT OVERRIDES)
+   ========================================================================== */
+
+.high-contrast {
+  --color-brand-purple: #0000ff !important;
+  --color-brand-pink: #d00070 !important;
+  --color-brand-cyan: #006060 !important;
+  --color-brand-blue: #0000ff !important;
+}
+
+.high-contrast.dark {
+  --color-brand-purple: #8080ff !important;
+  --color-brand-pink: #ff00ff !important;
+  --color-brand-cyan: #00ffff !important;
+  --color-brand-blue: #00ffff !important;
+}
+
+/* Base resets when high-contrast is active */
+.high-contrast body {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+
+.high-contrast.dark body {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+/* High contrast text elements */
+.high-contrast h1,
+.high-contrast h2,
+.high-contrast h3,
+.high-contrast h4,
+.high-contrast h5,
+.high-contrast h6,
+.high-contrast strong {
+  color: #000000 !important;
+  font-weight: 850 !important;
+}
+
+.high-contrast.dark h1,
+.high-contrast.dark h2,
+.high-contrast.dark h3,
+.high-contrast.dark h4,
+.high-contrast.dark h5,
+.high-contrast.dark h6,
+.high-contrast.dark strong {
+  color: #ffffff !important;
+  font-weight: 850 !important;
+}
+
+.high-contrast p,
+.high-contrast li,
+.high-contrast label,
+.high-contrast td,
+.high-contrast th,
+.high-contrast figcaption,
+.high-contrast span:not(.font-mono) {
+  color: #050505 !important;
+  font-weight: 650 !important;
+}
+
+.high-contrast.dark p,
+.high-contrast.dark li,
+.high-contrast.dark label,
+.high-contrast.dark td,
+.high-contrast.dark th,
+.high-contrast.dark figcaption,
+.high-contrast.dark span:not(.font-mono) {
+  color: #fafafa !important;
+  font-weight: 650 !important;
+}
+
+/* Disable color clipping or text masking gradients */
+.high-contrast .bg-clip-text {
+  background-image: none !important;
+  color: inherit !important;
+  background-clip: border-box !important;
+  -webkit-background-clip: border-box !important;
+  -webkit-text-fill-color: currentcolor !important;
+  font-weight: 900 !important;
+}
+
+.high-contrast .text-transparent {
+  color: inherit !important;
+}
+
+/* Neutralize ambient background gradients and transparent tints */
+.high-contrast .bg-gradient-to-br,
+.high-contrast .bg-gradient-to-r,
+.high-contrast .bg-gradient-to-t,
+.high-contrast .bg-gradient-to-l,
+.high-contrast [class*="bg-gradient-"] {
+  background-image: none !important;
+  background-color: #ffffff !important;
+}
+
+.high-contrast.dark .bg-gradient-to-br,
+.high-contrast.dark .bg-gradient-to-r,
+.high-contrast.dark .bg-gradient-to-t,
+.high-contrast.dark .bg-gradient-to-l,
+.high-contrast.dark [class*="bg-gradient-"] {
+  background-image: none !important;
+  background-color: #000000 !important;
+}
+
+/* Card overrides: pure solid, zero opacity or gradients */
+.high-contrast .bg-white,
+.high-contrast .bg-slate-50,
+.high-contrast .bg-slate-100,
+.high-contrast .bg-pink-50,
+.high-contrast .bg-purple-50,
+.high-contrast .bg-amber-50,
+.high-contrast .bg-cyan-50 {
+  background-color: #ffffff !important;
+}
+
+.high-contrast.dark .bg-white,
+.high-contrast.dark .bg-slate-900,
+.high-contrast.dark .bg-slate-950,
+.high-contrast.dark .bg-[#090d16],
+.high-contrast.dark .bg-[#0c1221],
+.high-contrast.dark .bg-[#0e1423],
+.high-contrast.dark .bg-[#070b12],
+.high-contrast.dark .bg-[#0d1322] {
+  background-color: #000000 !important;
+}
+
+/* Enforce stout black/white borders everywhere */
+.high-contrast .border,
+.high-contrast .border-t,
+.high-contrast .border-b,
+.high-contrast .border-l,
+.high-contrast .border-r,
+.high-contrast [class*="border-"] {
+  border-color: #000000 !important;
+  border-width: 2px !important;
+  border-style: solid !important;
+}
+
+.high-contrast.dark .border,
+.high-contrast.dark .border-t,
+.high-contrast.dark .border-b,
+.high-contrast.dark .border-l,
+.high-contrast.dark .border-r,
+.high-contrast.dark [class*="border-"] {
+  border-color: #ffffff !important;
+  border-width: 2px !important;
+  border-style: solid !important;
+}
+
+/* Accessible High Contrast inputs */
+.high-contrast input,
+.high-contrast textarea,
+.high-contrast select {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  border: 3px solid #000000 !important;
+  font-weight: 800 !important;
+}
+
+.high-contrast.dark input,
+.high-contrast.dark textarea,
+.high-contrast.dark select {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+  border: 3px solid #ffffff !important;
+  font-weight: 800 !important;
+}
+
+/* Robust solid Buttons */
+.high-contrast button,
+.high-contrast .cta-button,
+.high-contrast [role="button"] {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  border: 3px solid #000000 !important;
+  font-weight: 900 !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+.high-contrast.dark button,
+.high-contrast.dark .cta-button,
+.high-contrast.dark [role="button"] {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+  border: 3px solid #ffffff !important;
+  font-weight: 900 !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+/* Button hover feedback */
+.high-contrast button:hover,
+.high-contrast [role="button"]:hover {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+.high-contrast.dark button:hover,
+.high-contrast.dark [role="button"]:hover {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+
+/* Warning badges or top notice text colors */
+.high-contrast .bg-amber-500,
+.high-contrast .text-amber-400 {
+  background-color: #ffff00 !important;
+  color: #000000 !important;
+  font-weight: 905 !important;
+}
+
+.high-contrast.dark .bg-amber-500,
+.high-contrast.dark .text-amber-400 {
+  background-color: #ffff00 !important;
+  color: #000000 !important;
+  font-weight: 905 !important;
+}
+
+/* Enhanced Focus Ring */
+.high-contrast *:focus,
+.high-contrast *:focus-visible {
+  outline: 4px solid #ffff00 !important;
+  outline-offset: 2px !important;
+}
+
+/* ==========================================================================
+   READABILITY ACCESSIBILITY MODE (SENIORS & VISUALLY IMPAIRED DEMOGRAPHIC)
+   ========================================================================== */
+
+.readability-mode p,
+.readability-mode li,
+.readability-mode label,
+.readability-mode span:not(.font-mono),
+.readability-mode blockquote,
+.readability-mode td,
+.readability-mode th {
+  line-height: 2.15 !important; /* Highly spacious line height to prevent overlapping lines */
+  letter-spacing: 0.06em !important; /* Enhanced horizontal kerning to separate characters clearly */
+  font-size: 1.15rem !important; /* Substantially larger comfortable text sizing */
+}
+
+/* Increase display headings size & line height in readability mode to balance the screen */
+.readability-mode h1 {
+  font-size: 2.75rem !important;
+  line-height: 1.35 !important;
+  letter-spacing: 0.04em !important;
+  font-weight: 850 !important;
+}
+
+.readability-mode h2 {
+  font-size: 2.25rem !important;
+  line-height: 1.4 !important;
+  letter-spacing: 0.05em !important;
+  font-weight: 800 !important;
+}
+
+.readability-mode h3 {
+  font-size: 1.75rem !important;
+  line-height: 1.45 !important;
+  letter-spacing: 0.05em !important;
+  font-weight: 800 !important;
+}
+
+.readability-mode h4 {
+  font-size: 1.4rem !important;
+  line-height: 1.5 !important;
+  letter-spacing: 0.05em !important;
+}
+
+/* Force all grids, flexible arrays, and bento rows into a spacious single column layout */
+@media (min-width: 640px) {
+  .readability-mode .grid,
+  .readability-mode [class*="grid-cols-"],
+  .readability-mode [class*="lg:grid-cols-"],
+  .readability-mode [class*="md:grid-cols-"],
+  .readability-mode [class*="sm:grid-cols-"] {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 3.5rem !important; /* Generous gap between blocks */
+  }
+
+  /* Make sure column spans expand to take full block-width on single-column reading flow */
+  .readability-mode [class*="col-span-"],
+  .readability-mode [class*="lg:col-span-"],
+  .readability-mode [class*="md:col-span-"],
+  .readability-mode [class*="sm:col-span-"] {
+    grid-column: span 1 / span 1 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+}
+
+/* Ensure images don't crowd the text in readability layout */
+.readability-mode img {
+  max-height: 480px !important;
+  width: 100% !important;
+  object-fit: cover !important;
+  border-radius: 28px !important;
+  margin-top: 1rem !important;
+  margin-bottom: 1rem !important;
+}
+
+/* Provide clear separation/focus highlighting for each interactive block */
+.readability-mode section {
+  border-bottom: 3px dashed rgba(148, 163, 184, 0.45) !important;
+  padding-top: 5rem !important;
+  padding-bottom: 5rem !important;
+}
+
+
+

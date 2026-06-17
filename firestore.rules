@@ -1,0 +1,32 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 1. Global Safety Net catch-all: default deny (Pillar #1)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // 2. Waitlist entries (Pillar #2, #3, #10)
+    match /waitlist/{signUpId} {
+      allow read: if true;
+      allow create: if isValidWaitlist(request.resource.data);
+      allow delete: if true;
+    }
+  }
+}
+
+// 3. Validation Blueprints (Pillar #2)
+function isValidWaitlist(data) {
+  return data.keys().hasAll(['name', 'email', 'phone', 'category', 'services', 'submittedAt']) 
+    // Enforce exact key limits to prevent "Shadow updates" / "Ghost fields" (Pillar #2 & Red Team Shadow Update Test)
+    && data.keys().size() <= 8
+    
+    // Explicit type & boundary definitions (Pillar #2 & Pillar #10)
+    && data.name is string && data.name.size() > 0 && data.name.size() <= 100
+    && data.email is string && data.email.size() > 0 && data.email.size() <= 128
+    && data.phone is string && data.phone.size() <= 32
+    && data.category is string && data.category in ['client', 'family', 'facility', 'salon_owner', 'independent_pro', 'graduate']
+    && data.services is list && data.services.size() <= 15
+    && (!('notes' in data) || (data.notes is string && data.notes.size() <= 1000))
+    && data.submittedAt is string;
+}

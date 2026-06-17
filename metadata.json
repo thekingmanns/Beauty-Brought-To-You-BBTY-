@@ -1,0 +1,6 @@
+{
+  "name": "Beauty Brought to You",
+  "description": "An informational landing page and waitlist for BBTY, a mobile beauty and wellness-care service bringing professional care and dignity directly to seniors, individuals with disabilities, and care communities.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,51 @@
+{
+  "entities": {
+    "WaitlistSubmission": {
+      "title": "WaitlistSubmission",
+      "description": "Information provided by candidates or clients joining the priority waitlist.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Full name of the registrant."
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "Email address of the registrant."
+        },
+        "phone": {
+          "type": "string",
+          "description": "Contact phone number."
+        },
+        "category": {
+          "type": "string",
+          "enum": ["client", "family", "facility", "salon_owner", "independent_pro", "graduate"],
+          "description": "Categorization of the interest profile."
+        },
+        "services": {
+          "type": "array",
+          "description": "List of services the registrant is interested in."
+        },
+        "notes": {
+          "type": "string",
+          "description": "Additional notes and accessibility accommodations."
+        },
+        "submittedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when the submission was created."
+        }
+      },
+      "required": ["name", "email", "phone", "category", "services", "submittedAt"]
+    }
+  },
+  "firestore": {
+    "/waitlist/{signUpId}": {
+      "schema": {
+        "$ref": "#/entities/WaitlistSubmission"
+      },
+      "description": "Collection of all beauty and care waitlist registrations."
+    }
+  }
+}
