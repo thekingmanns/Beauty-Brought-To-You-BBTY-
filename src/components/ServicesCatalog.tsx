@@ -16,6 +16,7 @@ import {
   CheckSquare,
   Square
 } from 'lucide-react';
+import { safeCopyToClipboard } from '../lib/safeCopyToClipboard';
 
 interface ServiceItem {
   name: string;
@@ -203,7 +204,7 @@ export default function ServicesCatalog() {
 
   const handleCopySummary = () => {
     const summaryText = generatePlannerSummary();
-    navigator.clipboard.writeText(summaryText).then(() => {
+    safeCopyToClipboard(summaryText).then(() => {
       setCopiedSummary(true);
       setTimeout(() => setCopiedSummary(false), 3000);
     });

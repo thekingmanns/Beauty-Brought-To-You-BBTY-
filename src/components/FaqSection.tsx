@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { 
   Search, HelpCircle, ChevronDown, ChevronUp, Smile, AlertCircle, 
-  Printer, Download, Copy, Share2, X, Eye, BookOpen, Sparkles, CheckCircle, FileText
+  Printer, Download, Copy, Share2, X, Eye, BookOpen, Sparkles, CheckCircle, FileText, ShieldCheck
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAccessibility } from '../context/AccessibilityContext';
 import { FaqItem } from '../types';
+import { safeCopyToClipboard } from '../lib/safeCopyToClipboard';
 
-export default function FaqSection() {
+export default function FaqSection({ onOpenSecurity }: { onOpenSecurity?: () => void }) {
   const { settings } = useAccessibility();
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedIndex, setExpandedIndex] = useState<number | null>(0); // Default open the first one
@@ -17,42 +18,42 @@ export default function FaqSection() {
   const faqs: FaqItem[] = [
     {
       question: "What is Beauty Brought to You (BBTY)?",
-      answer: "Beauty Brought to You (BBTY) is a specialized mobile beauty and wellness-care platform launching soon. Unlike standard walk-in salons, BBTY is designed specifically to dispatch certified, licensed beauty professionals directly to clients where they are located. We serve seniors, individuals with disabilities, adults in assisted day support, long-term care facilities, and general clients looking for high-quality salon convenience brought directly to their comfortable spaces.",
+      answer: "BBTY is a mobile beauty and wellness platform. We send certified, licensed beauty professionals directly to you. We serve seniors, people with disabilities, and anyone seeking convenient salon services at home or in Care Facilities.",
       category: "general"
     },
     {
       question: "Is this a medical service or treatment?",
-      answer: "No. BBTY provides standard cosmetic beauty, grooming, and wellness-care support, never medical treatment, diagnostics, or therapeutic interventions. Our professional technicians do not handle clinical skin conditions, perform nail surgery, or cure medical symptoms. All services are focused entirely on helping you feel clean, elegant, seen, and comfortable in your own space of living. We refer to our team as 'wellness-aware' and 'mobility-friendly' because they understand custom safety pacing, not because they provide clinical therapy.",
+      answer: "No. BBTY provides standard cosmetic beauty and wellness care. We do not provide medical treatments, therapy, or diagnostics. Our services help you feel clean and comfortable. Our team is 'wellness-aware' and 'mobility-friendly', focusing on safety and patience.",
       category: "safety"
     },
     {
-      question: "Do you treat severe medical nail conditions or skin infections?",
-      answer: "Absolutely not. In keeping with safety limits and licensing laws, our technicians cannot treat or diagnose active fungal infections, open skin lesions, ingrown nails causing inflammation, or open pressure ulcers. If a physical issue appears to need medical attention during a grooming check, our stylists will respectfully outline what they notice and advise the client or their designated caregivers/family members to consult a licensed medical clinician or podiatrist.",
+      question: "Do you treat medical nail conditions or skin infections?",
+      answer: "No. Our technicians cannot treat fungal infections, open lesions, or ingrown nails causing inflammation. If they notice a physical issue, they will respectfully suggest that you consult a medical clinician or podiatrist.",
       category: "safety"
     },
     {
       question: "Who are your mobile beauty technicians?",
-      answer: "All technicians connected to BBTY are fully licensed cosmetologists, hair stylists, or nail technicians inside their operational state. In addition, they undergo custom BBTY training programs focused specifically on understanding geriatric hair structures, physical stability limitations, memory care triggers (for clients with dementia or Alzheimer's), sensory-friendly communication, and overall physical safety support to ensure a respectful experience.",
+      answer: "Our technicians are licensed cosmetologists, hair stylists, or nail technicians. They also complete custom training focused on seniors, memory care, and sensory-friendly communication.",
       category: "join-us"
     },
     {
       question: "What specific services can I book when the app launches?",
-      answer: "Once the booking application goes live, we will offer premium services including: Hair Care (shampooing with mobility-friendly portable basins, blowouts, roll sets, trims, styling), Nail Care (custom files, gentle geriatric manicures & pedicures, cuticle upkeep), Makeup (application and tutorials for seniors or occasions), and general Grooming Support (beard care, facial trims, hair maintainers). All are adapted to the client’s seated or bedside alignment.",
+      answer: "We will offer Hair Care (shampooing with portable basins, blowouts, cuts, styling), Nail Care (gentle manicures and pedicures), Makeup, and basic Grooming. All services are adapted to be comfortable while seated or in bed.",
       category: "general"
     },
     {
-      question: "How can senior living or assisted day care facilities partner with BBTY?",
-      answer: "Senior living, day support, and care communities can partner with us to schedule recurring 'BBTY Community Care Days.' Instead of families trying to coordinate travel, we arrange for clean, scheduled, licensed professionals to build a mini-salon right in your recreation room or attend to residents directly in their private suites. Joining our facility partner waitlist alerts you to bulk bookings, special rate configurations, and early access options.",
+      question: "How can senior living or care facilities partner with BBTY?",
+      answer: "Care communities can partner with us to schedule recurring 'Community Care Days'. We set up a mini-salon in your space, or attend to residents directly in their suites. Join our waiting list for early access and block booking options.",
       category: "facilities"
     },
     {
       question: "I am a salon owner. How does the subscription partnership help my business?",
-      answer: "Subscription partnerships allow local salon owners to register their own licensed stylists on the BBTY platform (up to 3 on the Basic plan, and 5 on the Plus plan). This is an outstanding mechanism for salon owners to capture weekday group bookings at nearby housing communities, build team consistency during slower mornings (such as Tuesdays & Wednesdays), gain branding exposure, and build new, high-margin, community-centric revenue streams under their salon banner.",
+      answer: "Salon owners can register their stylists on the BBTY platform (up to 3 on the Basic plan, and 5 on the Plus plan). This helps you fill slow weekday mornings with group bookings at nearby housing communities, build your brand, and create new revenue streams.",
       category: "join-us"
     },
     {
       question: "How does the waitlist work and is there any charge today?",
-      answer: "Joining the waitlist today is 100% free with no credit card required. It secures your email, profile type, and priority routing slot in our regional system. When we deploy stylists in your zip code, waitlist registrants receive priority schedule access ahead of the general public. It also helps us map local demand so we know which neighborhoods to recruit and license technicians in first!",
+      answer: "Joining the waitlist is 100% free with no credit card required. It secures your priority slot. Waitlist members get early access when we launch in your area.",
       category: "general"
     }
   ];
@@ -70,74 +71,56 @@ export default function FaqSection() {
   // Generate plain-text for download and copy actions
   const getBrochurePlaintext = () => {
     return `======================================================================
-BEAUTY BROUGHT TO YOU (BBTY) - OFFLINE SERVICES BROCHURE
+BEAUTY BROUGHT TO YOU (BBTY) - SERVICES BROCHURE
 ======================================================================
-🏡 Dignified Mobile Grooming & Aesthetic Self-Care for Families
+🏡 Mobile Grooming & Self-Care
 Website: www.beautybroughttoyou.com
 Email: info@beautybroughttoyou.com
 Phone: (555) BBTY-CARE (2273)
-Live Waitlist Registry Core launch hubs: Boston, Chicago, Phoenix & New York Area
+Launch hubs: Boston, Chicago, Phoenix & New York Area
 ----------------------------------------------------------------------
 
-1. ABOUT OUR DEDICATED SOCIAL MISSION:
-Beauty Brought to You is a dedicated community-focused mobile platform delivering 
-licensed beauty support, gentle skincare, and grooming confidence directly inside 
-the residency spaces of clients with accessibility challenges. We serve seniors, 
-individuals with chronic disabilities, and those who struggle to access traditional 
-walk-in salons. Guided by physical safety, geriatric care pacing, and profound 
-compassion, we believe self-grooming is a fundamental human right.
+1. ABOUT US:
+Beauty Brought to You (BBTY) is a mobile platform delivering licensed beauty support, gentle skincare, and grooming directly to clients at home. We serve seniors, individuals with disabilities, and anyone seeking convenient salon services within their comfort zone.
 
-2. MOBILITY-FRIENDLY HAIR SERVICES:
-• Portable Shampoo Basin Wash: Comfort-aligned scalp massage and cleansing 
-  adapted to bedsides, seating, or special wheelchairs.
-• Hair Trim & Scissor Cuts: Experienced styling, bang touchups, and grooming 
-  suited to different physical stability configurations.
-• Classic Roller Sets & Blowouts: Elegant set treatments and heat styling 
-  that rebuild identity, energy, and confidence.
+2. MOBILE HAIR SERVICES:
+• Portable Wash: Comfortable scalp massage and cleansing adapted to bedsides or wheelchairs.
+• Hair Trims & Cuts: Experienced styling suited to various mobility needs.
+• Blowouts & Styling: Heat styling to boost confidence.
 
-3. SOOTHING NAIL & CARE SERVICES:
-• Geriatric Fingernail Files: Gentle nail trimming, non-invasive filing, 
-  and deep skin-hydration moisturizing for delicate hand areas.
-• Comfort Grooming & Beard Trims: Clean shaves, structural mustache details, 
-  and soft aesthetic touches.
+3. NAIL & CARE SERVICES:
+• Gentle Manicures & Pedicures: Gentle nail filing and deep skin-hydration.
+• Grooming: Clean shaves and beard trims.
 
-4. QUALITY STANDARDS & SAFETY ASSURANCES:
-• 100% Licensed & Vetted: Every beauty professional is verified through local 
-  state licensing, subject to extensive background checks, and custom-trained 
-  in memory care companion methods.
-• Hospital-Grade Hygiene: Strictly clean brushes, single-use nail file strips, 
-  and chemically sanitized styling basins.
-• Non-Clinical Care: Standard beauty cosmetology only. If a physical podiatry 
-  or dermatology issue needs surgical or medical cure, we respectfully guide 
-  caregivers to professional physicians.
+4. SAFETY & QUALITY:
+• Licensed & Vetted: Every professional is licensed, background checked, and trained in gentle care.
+• Clean & Safe: Single-use files, sterilized tools, and clean workspaces.
+• Non-Clinical: We provide cosmetic beauty services only. We do not provide medical treatments.
 
-5. UPCOMING MEMBERSHIP ESTIMATIONS:
-• Comfort Care Circle: $19.99/mo (or $15.99 billed annually). Direct access to 
-  local priority booking queues for private households.
-• Partner Salon Tiers: Starting at $79.00/mo. Register, verify, and dispatch 
-  up to 3 authorized salon stylists.
+5. PRICING PREVIEW:
+• Care Circle: $19.99/mo for priority home bookings.
+• Partner Salons: Starting at $79.00/mo to register up to 3 stylists.
 
 ----------------------------------------------------------------------
-CRITICAL SAFETY & MEDICAL DISCLAIMER:
-Beauty Brought to You (BBTY) is an informational mobile beauty applet startup 
-and subscription coordination platform. We do NOT provide medical treatments, 
-physical-needs nursing, chiropractic manipulation, dermatology medical therapy, 
-or clinical podiatric surgery. Stylists operate purely under local state professional 
-licensing guidelines regarding cosmetic haircuts, grooming comfort, basic aesthetic 
-nail maintenance, and skin moisturizing.
+SAFETY MEDICAL DISCLAIMER:
+Beauty Brought to You (BBTY) is an informational mobile platform. We do not provide medical treatments, physical therapy, or medical dermatology. Stylists operate within their local cosmetic licensing guidelines.
 ======================================================================
 © ${new Date().getFullYear()} Beauty Brought To You, LLC. All Rights Reserved.
 `;
   };
 
   const handleCopyToClipboard = () => {
-    navigator.clipboard.writeText(getBrochurePlaintext())
-      .then(() => {
-        setCopySuccess(true);
-        setTimeout(() => setCopySuccess(false), 2500);
+    safeCopyToClipboard(getBrochurePlaintext())
+      .then((success) => {
+        if (success) {
+          setCopySuccess(true);
+          setTimeout(() => setCopySuccess(false), 2500);
+        } else {
+          console.warn('Failed to copy text into clipboard (safeCopyToClipboard returned false)');
+        }
       })
       .catch((err) => {
-        console.error('Failed to copy text into clipboard', err);
+        console.warn('Failed to copy text into clipboard', err);
       });
   };
 
@@ -155,7 +138,11 @@ nail maintenance, and skin moisturizing.
   };
 
   const executePrint = () => {
-    window.print();
+    try {
+      window.print();
+    } catch (e) {
+      console.warn("Printing is not supported in this iframe sandbox.", e);
+    }
   };
 
   return (
@@ -192,9 +179,9 @@ nail maintenance, and skin moisturizing.
         <div className="mb-8 p-4 bg-[#fefbf6] dark:bg-slate-900/90 border border-amber-250 dark:border-amber-900/60 rounded-2xl flex items-start gap-3 text-xs text-amber-900 dark:text-amber-200 transition-colors shadow-2xs">
           <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
           <div className="space-y-1">
-            <strong className="text-amber-955 dark:text-amber-200 uppercase tracking-wide">IMPORTANT CLINICAL DISCLAIMER:</strong> 
+            <strong className="text-amber-955 dark:text-amber-200 uppercase tracking-wide">IMPORTANT DISLAIMER:</strong> 
             <p className="text-slate-700 dark:text-slate-300 leading-normal font-sans">
-              Beauty Brought to You (BBTY) and its associated platform independent stylists do NOT offer medical diagnostics, dermatology treatment, chiropractic alignments, or podiatric clinical surgery. We offer non-therapeutic salon beauty styling, cosmetic haircuts, fingernail/toenail filing, and aesthetic maintenance centered in comfort zones.
+              Beauty Brought to You (BBTY) and its independent stylists provide cosmetic and grooming services. We do NOT provide medical diagnostics, therapeutic treatments, or clinical therapy.
             </p>
           </div>
         </div>
@@ -258,8 +245,19 @@ nail maintenance, and skin moisturizing.
           )}
         </div>
 
+        {/* Security / SSL Badge */}
+        <div className="mt-6 flex justify-center print:hidden">
+          <button 
+            onClick={onOpenSecurity}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-50 dark:bg-emerald-500/10 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-xl border border-emerald-200 dark:border-emerald-500/20 hover:border-emerald-300 dark:hover:border-emerald-500/40 transition-all text-xs font-semibold cursor-pointer"
+          >
+            <ShieldCheck className="w-4 h-4" />
+            Verified Secure Profile
+          </button>
+        </div>
+
         {/* Caregiver Print Resource Card */}
-        <div className="mt-12 p-8 bg-white dark:bg-slate-900 rounded-3xl border-2 border-dashed border-slate-200 dark:border-slate-800 text-center space-y-4 print:hidden" id="caregiver-print-toolkit">
+        <div className="mt-8 p-8 bg-white dark:bg-slate-900 rounded-3xl border-2 border-dashed border-slate-200 dark:border-slate-800 text-center space-y-4 print:hidden" id="caregiver-print-toolkit">
           <div className="max-w-xl mx-auto space-y-2">
             <span className="text-[10px] font-mono font-bold text-pink-700 dark:text-pink-300 uppercase tracking-widest bg-pink-50 dark:bg-pink-950/40 px-2.5 py-1 rounded-md border border-pink-100/60 dark:border-pink-900/30">
               Caregiver & Coordinator Tool
@@ -271,13 +269,24 @@ nail maintenance, and skin moisturizing.
               If you are a family member, life enrichment coordinator, or clinic representative who wants to share these mobility-friendly services offline, click below. We have formatted a pristine, high-contrast print brochure featuring our service directories, pricing projections, and safety disclosures specifically structured for physical distribution.
             </p>
           </div>
-          <button
-            onClick={() => setIsPrintModalOpen(true)}
-            className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-pink-500 via-rose-500 to-amber-500 hover:from-pink-600 hover:via-rose-600 hover:to-amber-600 text-white rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer hover:scale-102 active:scale-98"
-            id="print-action-btn"
-          >
-            🖨️ Open Print-Friendly Service Sheet
-          </button>
+          <div className="flex flex-wrap items-center justify-center gap-3.5 mt-4">
+            <button
+              onClick={executePrint}
+              type="button"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-pink-500 via-rose-500 to-amber-500 hover:from-pink-600 hover:via-rose-600 hover:to-amber-600 text-white rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer hover:scale-102 active:scale-98"
+              id="download-printable-brochure-faq-btn"
+            >
+              🖨️ Download Printable Brochure
+            </button>
+            <button
+              onClick={() => setIsPrintModalOpen(true)}
+              type="button"
+              className="inline-flex items-center gap-2 px-5 py-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-xl text-xs font-bold transition-all border border-slate-200 dark:border-slate-700 cursor-pointer hover:scale-102 active:scale-98"
+              id="preview-offline-doc-faq-btn"
+            >
+              📄 Preview Offline Document
+            </button>
+          </div>
         </div>
 
       </div>

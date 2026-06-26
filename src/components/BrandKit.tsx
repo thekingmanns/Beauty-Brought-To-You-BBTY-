@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Copy, Check, Sparkles, BookOpen, Heart, Eye } from 'lucide-react';
+import { Copy, Check, Sparkles, BookOpen, Heart, Eye, Share2 } from 'lucide-react';
+import { safeCopyToClipboard } from '../lib/safeCopyToClipboard';
 
 interface BrandKitProps {
   onSelectHeadline: (headline: string) => void;
@@ -15,6 +16,23 @@ export default function BrandKit({
   currentTagline,
 }: BrandKitProps) {
   const [copiedText, setCopiedText] = useState<string | null>(null);
+  const [copiedWorkspace, setCopiedWorkspace] = useState(false);
+
+  const copyWorkspaceLink = () => {
+    try {
+      const base = typeof window !== 'undefined' ? window.location.origin + window.location.pathname : 'https://beautybroughttoyou.com';
+      const url = `${base}?hl=${encodeURIComponent(currentHeadline)}&tl=${encodeURIComponent(currentTagline)}`;
+      
+      const message = `Check out this updated custom design workspace for Beauty Brought to You (BBTY)!\n\nHeadline: "${currentHeadline}"\n\nLink to see live custom configuration:\n${url}`;
+      
+      safeCopyToClipboard(message).then(() => {
+        setCopiedWorkspace(true);
+        setTimeout(() => setCopiedWorkspace(false), 2500);
+      });
+    } catch (e) {
+      console.warn("Failed to generate custom workspace link:", e);
+    }
+  };
 
   const headlines = [
     "Expirences Professional beauty & wellness grooming services delivered directly to you. At your convenience in the comfort and privacy of any where you are.",
@@ -34,9 +52,10 @@ export default function BrandKit({
   ];
 
   const handleCopy = (text: string, id: string) => {
-    navigator.clipboard.writeText(text);
-    setCopiedText(id);
-    setTimeout(() => setCopiedText(null), 2000);
+    safeCopyToClipboard(text).then(() => {
+      setCopiedText(id);
+      setTimeout(() => setCopiedText(null), 2000);
+    });
   };
 
   return (
@@ -197,6 +216,28 @@ export default function BrandKit({
                 <Eye className="w-3 h-3" /> Fully Customized
               </span>
             </div>
+          </div>
+
+          {/* Share Configured Link Button */}
+          <div className="bg-gradient-to-br from-slate-900 to-indigo-950 text-white rounded-2xl p-5 border border-indigo-900/30 space-y-3 relative overflow-hidden shadow-md">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-purple-500/10 rounded-full blur-xl"></div>
+            <div className="flex items-center gap-2 relative z-10">
+              <Share2 className="w-4 h-4 text-purple-300" />
+              <span className="text-[10px] font-mono tracking-widest text-purple-200 uppercase font-bold">Share Your Custom Workspace</span>
+            </div>
+            <p className="text-xs text-slate-350 leading-relaxed font-sans relative z-10">
+              Copy a link that saves your customized copy! Anyone who opens this link will see your exact custom selected headline, tagline, and real-time live page updates instantly loaded.
+            </p>
+            <button
+              onClick={copyWorkspaceLink}
+              type="button"
+              className={`w-full py-2.5 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all text-white cursor-pointer ${
+                copiedWorkspace ? 'bg-emerald-600' : 'bg-purple-600 hover:bg-purple-700'
+              }`}
+            >
+              {copiedWorkspace ? <Check className="w-3.5 h-3.5 animate-bounce" /> : <Copy className="w-3.5 h-3.5" />}
+              <span>{copiedWorkspace ? 'Workspace Link Copied!' : 'Copy Customized Workspace Link'}</span>
+            </button>
           </div>
 
           {/* Mission & Vision Statements */}

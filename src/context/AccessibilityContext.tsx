@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { safeLocalStorage } from '../lib/safeStorage';
 
 export interface AccessibilitySettings {
   highContrast: boolean;
@@ -26,18 +27,25 @@ export const useAccessibility = () => {
 export const AccessibilityProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [settings, setSettings] = useState<AccessibilitySettings>(() => {
     try {
-      const saved = localStorage.getItem('bbty_accessibility_preferences');
+      const saved = safeLocalStorage.getItem('bbty_accessibility_preferences');
       if (saved) {
         return JSON.parse(saved);
       }
     } catch (e) {
-      console.error('Error parsing accessibility settings', e);
+      console.warn('Error parsing accessibility settings', e);
     }
     
     // Fallbacks from previous individual keys or defaults
-    const legacyHighContrast = localStorage.getItem('bbty_high_contrast') === 'true';
-    const legacyReadability = localStorage.getItem('bbty_readability_mode') === 'true';
-    const legacyDarkMode = localStorage.getItem('bbty_dark_mode') === 'true';
+    let legacyHighContrast = false;
+    let legacyReadability = false;
+    let legacyDarkMode = false;
+    try {
+      legacyHighContrast = safeLocalStorage.getItem('bbty_high_contrast') === 'true';
+      legacyReadability = safeLocalStorage.getItem('bbty_readability_mode') === 'true';
+      legacyDarkMode = safeLocalStorage.getItem('bbty_dark_mode') === 'true';
+    } catch (e) {
+      console.warn('Failed to read legacy styles', e);
+    }
     
     return {
       highContrast: legacyHighContrast,
@@ -49,7 +57,11 @@ export const AccessibilityProvider: React.FC<{ children: React.ReactNode }> = ({
   const updateSetting = (key: keyof AccessibilitySettings, value: boolean) => {
     setSettings((prev) => {
       const next = { ...prev, [key]: value };
-      localStorage.setItem('bbty_accessibility_preferences', JSON.stringify(next));
+      try {
+        safeLocalStorage.setItem('bbty_accessibility_preferences', JSON.stringify(next));
+      } catch (e) {
+        console.warn('Failed to write accessibility preferences', e);
+      }
       return next;
     });
   };

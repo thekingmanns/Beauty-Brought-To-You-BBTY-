@@ -7,15 +7,15 @@ interface Props {
 }
 
 const getGurleyBearSvgDataUrl = (isDark: boolean, isHighContrast: boolean) => {
-  const bgColor = isHighContrast ? (isDark ? "%23000000" : "%23ffffff") : (isDark ? "%23090d16" : "%23fcfbfa");
-  const textColor = isHighContrast ? (isDark ? "%23ffffff" : "%23000000") : (isDark ? "%23f1f5f9" : "%231e293b");
-  const subtitleColor = isHighContrast ? (isDark ? "%23fafafa" : "%23444444") : (isDark ? "%2394a3b8" : "%234a4a4a");
-  const heartStroke = isHighContrast ? (isDark ? "%23ffffff" : "%23000000") : (isDark ? "%23f472b6" : "%232e2e2e");
+  const bgColor = isHighContrast ? (isDark ? "#000000" : "#ffffff") : (isDark ? "#090d16" : "#fcfbfa");
+  const textColor = isHighContrast ? (isDark ? "#ffffff" : "#000000") : (isDark ? "#f1f5f9" : "#1e293b");
+  const subtitleColor = isHighContrast ? (isDark ? "#fafafa" : "#444444") : (isDark ? "#94a3b8" : "#4a4a4a");
+  const heartStroke = isHighContrast ? (isDark ? "#ffffff" : "#000000") : (isDark ? "#f472b6" : "#2e2e2e");
   
   // Custom watercolor gradients for authentic branding representation
-  const stop1 = isHighContrast ? "%23000000" : "%23f472b6";
-  const stop2 = isHighContrast ? "%23000000" : "%23c084fc";
-  const stop3 = isHighContrast ? "%23000000" : "%23fbbf24";
+  const stop1 = isHighContrast ? "#000000" : "#f472b6";
+  const stop2 = isHighContrast ? "#000000" : "#c084fc";
+  const stop3 = isHighContrast ? "#000000" : "#fbbf24";
   const stopOpacity = isHighContrast ? "0.0" : "0.45";
 
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" style="background-color: ${bgColor}; transition: background-color 0.2s;">
@@ -32,55 +32,55 @@ const getGurleyBearSvgDataUrl = (isDark: boolean, isHighContrast: boolean) => {
 
     <path
       d="M 200 215 C 130 160, 95 110, 130 65 C 155 35, 200 70, 200 70 C 200 70, 245 35, 270 65 C 305 110, 270 160, 200 215 Z"
-      fill="url(%23pastel-heart-grad)"
-      filter="url(%23pastel-glow)"
+      fill="url(#pastel-heart-grad)"
+      filter="url(#pastel-glow)"
       transform="translate(0, 5) scale(1.1) rotate(5, 200, 150)"
     />
 
     <g transform="translate(255, 120) scale(0.68)">
-      <ellipse cx="60" cy="182" rx="65" ry="14" fill="%23000000" opacity="0.08" filter="blur(4px)" />
+      <ellipse cx="60" cy="182" rx="65" ry="14" fill="#000000" opacity="0.08" filter="blur(4px)" />
 
-      <circle cx="10" cy="165" r="28" fill="%23dfbba5" stroke="%23ccaa95" stroke-width="2" />
-      <circle cx="10" cy="165" r="18" fill="%23eccdb7" />
-      <circle cx="-1" cy="154" r="4.5" fill="%23dfbba5" />
-      <circle cx="10" cy="150" r="4.5" fill="%23dfbba5" />
-      <circle cx="21" cy="154" r="4.5" fill="%23dfbba5" />
+      <circle cx="10" cy="165" r="28" fill="#dfbba5" stroke="#ccaa95" stroke-width="2" />
+      <circle cx="10" cy="165" r="18" fill="#eccdb7" />
+      <circle cx="-1" cy="154" r="4.5" fill="#dfbba5" />
+      <circle cx="10" cy="150" r="4.5" fill="#dfbba5" />
+      <circle cx="21" cy="154" r="4.5" fill="#dfbba5" />
 
-      <circle cx="110" cy="165" r="28" fill="%23dfbba5" stroke="%23ccaa95" stroke-width="2" />
-      <circle cx="110" cy="165" r="18" fill="%23eccdb7" />
-      <circle cx="99" cy="154" r="4.5" fill="%23dfbba5" />
-      <circle cx="110" cy="150" r="4.5" fill="%23dfbba5" />
-      <circle cx="121" cy="154" r="4.5" fill="%23dfbba5" />
+      <circle cx="110" cy="165" r="28" fill="#dfbba5" stroke="#ccaa95" stroke-width="2" />
+      <circle cx="110" cy="165" r="18" fill="#eccdb7" />
+      <circle cx="99" cy="154" r="4.5" fill="#dfbba5" />
+      <circle cx="110" cy="150" r="4.5" fill="#dfbba5" />
+      <circle cx="121" cy="154" r="4.5" fill="#dfbba5" />
 
       <g transform="rotate(32, -15, 115)">
-        <rect x="-15" y="85" width="28" height="52" rx="14" fill="%23dfbba5" stroke="%23ccaa95" stroke-width="2" />
-        <circle cx="-1" cy="120" r="8" fill="%23eccdb7" />
+        <rect x="-15" y="85" width="28" height="52" rx="14" fill="#dfbba5" stroke="#ccaa95" stroke-width="2" />
+        <circle cx="-1" cy="120" r="8" fill="#eccdb7" />
       </g>
 
       <g transform="rotate(-32, 135, 115)">
-        <rect x="107" y="85" width="28" height="52" rx="14" fill="%23dfbba5" stroke="%23ccaa95" stroke-width="2" />
-        <circle cx="121" cy="120" r="8" fill="%23eccdb7" />
+        <rect x="107" y="85" width="28" height="52" rx="14" fill="#dfbba5" stroke="#ccaa95" stroke-width="2" />
+        <circle cx="121" cy="120" r="8" fill="#eccdb7" />
       </g>
 
-      <ellipse cx="60" cy="126" rx="42" ry="48" fill="%23eccdb7" stroke="%23dfbba5" stroke-width="2" />
-      <ellipse cx="60" cy="125" rx="28" ry="32" fill="%23f7dfcf" />
+      <ellipse cx="60" cy="126" rx="42" ry="48" fill="#eccdb7" stroke="#dfbba5" stroke-width="2" />
+      <ellipse cx="60" cy="125" rx="28" ry="32" fill="#f7dfcf" />
 
-      <circle cx="18" cy="24" r="18" fill="%23dfbba5" stroke="%23ccaa95" stroke-width="2" />
-      <circle cx="18" cy="24" r="10" fill="%23f7dfcf" />
+      <circle cx="18" cy="24" r="18" fill="#dfbba5" stroke="#ccaa95" stroke-width="2" />
+      <circle cx="18" cy="24" r="10" fill="#f7dfcf" />
 
-      <circle cx="102" cy="24" r="18" fill="%23dfbba5" stroke="%23ccaa95" stroke-width="2" />
-      <circle cx="102" cy="24" r="10" fill="%23f7dfcf" />
+      <circle cx="102" cy="24" r="18" fill="#dfbba5" stroke="#ccaa95" stroke-width="2" />
+      <circle cx="102" cy="24" r="10" fill="#f7dfcf" />
 
-      <circle cx="60" cy="48" r="42" fill="%23eccdb7" stroke="%23dfbba5" stroke-width="2" />
+      <circle cx="60" cy="48" r="42" fill="#eccdb7" stroke="#dfbba5" stroke-width="2" />
 
-      <circle cx="44" cy="40" r="5" fill="%232d221e" />
-      <circle cx="42.5" cy="38.5" r="1.5" fill="%23ffffff" />
-      <circle cx="76" cy="40" r="5" fill="%232d221e" />
-      <circle cx="74.5" cy="38.5" r="1.5" fill="%23ffffff" />
+      <circle cx="44" cy="40" r="5" fill="#2d221e" />
+      <circle cx="42.5" cy="38.5" r="1.5" fill="#ffffff" />
+      <circle cx="76" cy="40" r="5" fill="#2d221e" />
+      <circle cx="74.5" cy="38.5" r="1.5" fill="#ffffff" />
 
-      <ellipse cx="60" cy="56" rx="15" ry="11" fill="%23fbf0e6" />
-      <path d="M 60 52 L 60 56.5 M 60 56.5 Q 57 59.5, 54 57.5 M 60 56.5 Q 63 59.5, 66 57.5" stroke="%232d221e" stroke-width="1.8" stroke-linecap="round" fill="none" />
-      <ellipse cx="60" cy="50" rx="7.5" ry="5" fill="%232d221e" />
+      <ellipse cx="60" cy="56" rx="15" ry="11" fill="#fbf0e6" />
+      <path d="M 60 52 L 60 56.5 M 60 56.5 Q 57 59.5, 54 57.5 M 60 56.5 Q 63 59.5, 66 57.5" stroke="#2d221e" stroke-width="1.8" stroke-linecap="round" fill="none" />
+      <ellipse cx="60" cy="50" rx="7.5" ry="5" fill="#2d221e" />
     </g>
 
     <g transform="translate(24, 75)">
@@ -139,6 +139,67 @@ const getGurleyBearSvgDataUrl = (isDark: boolean, isHighContrast: boolean) => {
   return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 };
 
+const getGurleyBearMascotSvgDataUrl = () => {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-15 5 150 195" style="background: transparent;">
+    <!-- Shadow -->
+    <ellipse cx="60" cy="182" rx="65" ry="14" fill="#000000" opacity="0.08" filter="blur(4px)" />
+
+    <!-- Left Foot -->
+    <circle cx="10" cy="165" r="28" fill="#dfbba5" stroke="#ccaa95" stroke-width="2" />
+    <circle cx="10" cy="165" r="18" fill="#eccdb7" />
+    <circle cx="-1" cy="154" r="4.5" fill="#dfbba5" />
+    <circle cx="10" cy="150" r="4.5" fill="#dfbba5" />
+    <circle cx="21" cy="154" r="4.5" fill="#dfbba5" />
+
+    <!-- Right Foot -->
+    <circle cx="110" cy="165" r="28" fill="#dfbba5" stroke="#ccaa95" stroke-width="2" />
+    <circle cx="110" cy="165" r="18" fill="#eccdb7" />
+    <circle cx="99" cy="154" r="4.5" fill="#dfbba5" />
+    <circle cx="110" cy="150" r="4.5" fill="#dfbba5" />
+    <circle cx="121" cy="154" r="4.5" fill="#dfbba5" />
+
+    <!-- Left Arm -->
+    <g transform="rotate(32, -15, 115)">
+      <rect x="-15" y="85" width="28" height="52" rx="14" fill="#dfbba5" stroke="#ccaa95" stroke-width="2" />
+      <circle cx="-1" cy="120" r="8" fill="#eccdb7" />
+    </g>
+
+    <!-- Right Arm -->
+    <g transform="rotate(-32, 135, 115)">
+      <rect x="107" y="85" width="28" height="52" rx="14" fill="#dfbba5" stroke="#ccaa95" stroke-width="2" />
+      <circle cx="121" cy="120" r="8" fill="#eccdb7" />
+    </g>
+
+    <!-- Body -->
+    <ellipse cx="60" cy="126" rx="42" ry="48" fill="#eccdb7" stroke="#dfbba5" stroke-width="2" />
+    <ellipse cx="60" cy="125" rx="28" ry="32" fill="#f7dfcf" />
+
+    <!-- Left Ear -->
+    <circle cx="18" cy="24" r="18" fill="#dfbba5" stroke="#ccaa95" stroke-width="2" />
+    <circle cx="18" cy="24" r="10" fill="#f7dfcf" />
+
+    <!-- Right Ear -->
+    <circle cx="102" cy="24" r="18" fill="#dfbba5" stroke="#ccaa95" stroke-width="2" />
+    <circle cx="102" cy="24" r="10" fill="#f7dfcf" />
+
+    <!-- Head -->
+    <circle cx="60" cy="48" r="42" fill="#eccdb7" stroke="#dfbba5" stroke-width="2" />
+
+    <!-- Eyes -->
+    <circle cx="44" cy="40" r="5" fill="#2d221e" />
+    <circle cx="42.5" cy="38.5" r="1.5" fill="#ffffff" />
+    <circle cx="76" cy="40" r="5" fill="#2d221e" />
+    <circle cx="74.5" cy="38.5" r="1.5" fill="#ffffff" />
+
+    <!-- Muzzle & Nose -->
+    <ellipse cx="60" cy="56" rx="15" ry="11" fill="#fbf0e6" />
+    <path d="M 60 52 L 60 56.5 M 60 56.5 Q 57 59.5, 54 57.5 M 60 56.5 Q 63 59.5, 66 57.5" stroke="#2d221e" stroke-width="1.8" stroke-linecap="round" fill="none" />
+    <ellipse cx="60" cy="50" rx="7.5" ry="5" fill="#2d221e" />
+  </svg>`;
+  
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+};
+
 export default function GurleyBearSection({ onLearnMore }: Props) {
   const { settings } = useAccessibility();
   return (
@@ -156,14 +217,14 @@ export default function GurleyBearSection({ onLearnMore }: Props) {
             
             {/* Column 1: Cute Bear Mascot Logo / Badge (Left side alignment) - Col-span-3 */}
             <div className="lg:col-span-3 flex flex-col items-center text-center space-y-4">
-              <div className="w-40 h-40 bg-pink-50/80 dark:bg-pink-950/20 rounded-full p-4 border-2 border-dashed border-pink-200/60 dark:border-pink-900/40 relative flex items-center justify-center shadow-inner group">
-                <div className="absolute top-2 right-2 bg-pink-500 text-white rounded-full p-1 shadow-sm">
-                  <Heart className="w-3.5 h-3.5 fill-current" />
+              <div className="w-48 h-48 bg-white dark:bg-white rounded-2xl p-4 border-2 border-dashed border-pink-200/60 dark:border-pink-900/40 relative flex items-center justify-center shadow-inner group">
+                <div className="absolute -top-2 -right-2 bg-pink-500 text-white rounded-full p-1.5 shadow-sm">
+                  <Heart className="w-4 h-4 fill-current" />
                 </div>
                 <img 
-                  src="https://images.unsplash.com/photo-1559251606-c623743a6d76?auto=format&fit=crop&w=400&h=400&q=80"
-                  alt="Gurley Bear Mascot"
-                  className="w-full h-full object-cover rounded-full group-hover:scale-105 transition-transform duration-500"
+                  src={getGurleyBearMascotSvgDataUrl()}
+                  alt="Gurley Bear Foundation Official Caring Teddy Logo"
+                  className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
                   referrerPolicy="no-referrer"
                 />
               </div>

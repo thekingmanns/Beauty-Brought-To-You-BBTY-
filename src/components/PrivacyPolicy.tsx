@@ -4,6 +4,7 @@ import {
   Database, AlertCircle, FileText, CheckCircle, Scale, Globe, UserCheck
 } from "lucide-react";
 import { motion } from "motion/react";
+import { safeCopyToClipboard } from "../lib/safeCopyToClipboard";
 
 interface Props {
   onBack: () => void;
@@ -14,9 +15,10 @@ export default function PrivacyPolicy({ onBack }: Props) {
   const [copiedText, setCopiedText] = useState(false);
 
   const handleCopyContact = () => {
-    navigator.clipboard.writeText("info@beautybroughttoyou.com");
-    setCopiedText(true);
-    setTimeout(() => setCopiedText(false), 2000);
+    safeCopyToClipboard("info@beautybroughttoyou.com").then(() => {
+      setCopiedText(true);
+      setTimeout(() => setCopiedText(false), 2000);
+    });
   };
 
   const sections = [
@@ -110,10 +112,10 @@ export default function PrivacyPolicy({ onBack }: Props) {
               <Globe className="w-5 h-5 text-pink-500 shrink-0" /> 1. Commitment to Accessible & Dignified Care
             </h2>
             <p className="text-slate-600 dark:text-slate-300">
-              Beauty Brought to You (BBTY), LLC ("we", "us", "our") serves as an innovative mobile coordinator. We match licensed independent hair stylists, cosmetology schools, manicure specialists, and comfort-givers to private families, fragile seniors, diabetics, and residential care facilities. 
+              Beauty Brought to You (BBTY), LLC ("we", "us", "our") is a mobile platform. We connect licensed hair stylists, manicurists, and beauty professionals to private families, seniors, people with disabilities, and care facilities. 
             </p>
             <p className="text-slate-600 dark:text-slate-300">
-              Because our social mission caters to individuals requiring accessibility accommodations, we enforce severe security limitations. This Policy documents exactly what information we handle, how it is written to our remote databases, and how you remain in complete authorial control.
+              Because our mission caters to individuals requiring accessibility accommodations, we enforce strong security practices. This Policy documents exactly what information we handle, how it is written to our remote databases, and how you remain in control.
             </p>
           </div>
         )}

@@ -32,57 +32,57 @@ export default function TechQualifications() {
   const pillars: TrainingPillar[] = [
     {
       id: 'cognitive',
-      title: 'Dignified Communication & Cognitive Pacing',
+      title: 'Communication & Patience',
       icon: Heart,
-      subtitle: 'Patience-First Pacing & Sensory Accommodation',
-      summary: 'Our beauty professionals are trained to work slowly and speak clearly, building quiet rapport. They are coached to adjust to individual cognitive speeds, supporting seniors with memory support needs, dementia, or sensory processing fatigue.',
+      subtitle: 'Patience & Sensory Accommodation',
+      summary: 'Our beauty professionals are trained to work slowly and speak clearly. They are coached to support seniors with memory needs, dementia, or sensory fatigue.',
       methods: [
-        'Cognitive Pacing: Allowing extra time for transitions, reducing surprise movements, and mirroring the client’s comfort speed.',
-        'Sensory-Friendly Space Setup: Minimizing background noise, avoiding overlapping conversations, and limiting high-frequency hair-dryer runtimes.',
-        'Dementia-Friendly Validation: Conversational techniques designed to soothe anxiety, reduce confusion, and restore calm during service steps.',
-        'Active Listening & Story Preservation: Welcoming client memories, stories, and individual style desires with genuine, unhurried warmth.'
+        'Pacing: Allowing extra time for transitions and mirroring the client’s comfort speed.',
+        'Sensory-Friendly Setup: Minimizing background noise and limiting loud hair-dryers.',
+        'Dementia-Friendly: Conversational techniques designed to soothe anxiety and restore calm.',
+        'Active Listening: Welcoming client stories and style choices with genuine warmth.'
       ],
-      vibeText: 'Establishing high emotional safety and sensory comfort is just as important as the perfect hair set.'
+      vibeText: 'Emotional safety and sensory comfort are just as important as the perfect hair set.'
     },
     {
       id: 'mobility',
-      title: 'Mobility & Physical Ergonomics Integration',
+      title: 'Mobility & Physical Support',
       icon: Layers,
-      subtitle: 'Adaptive Positioning & Safe physical setups',
-      summary: 'Traditional salons require climbing high-pedestal chairs or leaning over hard sinks. We train our stylists to bring flexible, high-care setups that adapt fully to wheelchairs, standard armchairs, hospital beds, or custom living environments.',
+      subtitle: 'Adaptive Positioning & Safe setups',
+      summary: 'Traditional salons require climbing high chairs or leaning over hard sinks. We train our stylists to bring flexible setups that adapt to wheelchairs, armchairs, or hospital beds.',
       methods: [
-        'Wheelchair Compatibility: Styling, washing, and nail trims adapted to standard or power chairs, avoiding unnecessary transfers.',
-        'Support Bar & Walker Synergy: Arranging equipment so clients can maintain physical handholds and stability supports throughout.',
-        'Zero-Strain Portable Washers: High-utility splash guards and adaptive portable blowouts designed to eliminate hard postural bending.',
-        'Home Space Respect: Setting clean-swept workspaces that protect rugs, hardwood floors, and keep walkways open for caregivers.'
+        'Wheelchair Friendly: Styling, washing, and nail trims adapted to standard or power chairs.',
+        'Safe Support: Arranging equipment so clients can maintain physical holds and stability.',
+        'Zero-Strain Washers: Portable wash stations designed to prevent uncomfortable bending.',
+        'Home Respect: Setting clean workspaces that protect floors and keep walkways open for caregivers.'
       ],
-      vibeText: 'We fit our beauty tools to the user’s preferred seating, never forcing the client to fit our tools.'
+      vibeText: 'We fit our beauty tools to your preferred seating, never the other way around.'
     },
     {
       id: 'gentle',
-      title: 'Gentle Cosmetic Touch & Product Safety',
+      title: 'Gentle Care & Product Safety',
       icon: Leaf,
-      subtitle: 'Fragile Skin, Thinning Hair, & Clean Hypoallergenic Practice',
-      summary: 'Cosmetic grooming for seniors and mobility-limited clients requires specialized manual techniques. We emphasize extra-gentle handling, protective manicures, and hypoallergenic formulas that nourish thin and delicate dermal areas.',
+      subtitle: 'Fragile Skin, Thinning Hair & Clean Practice',
+      summary: 'We emphasize gentle handling, soft manicures, and hypoallergenic formulas that protect thin and delicate skin.',
       methods: [
-        'Thinning Hair Restoration: Soft scalp tension, low-heat thermal styling, and using natural-bristle brushes to protect hair roots.',
-        'Gentle Nails & Skin Hydration: Podiatric-aware hand/foot filing (strictly cosmetic hygiene only) without sharp metal instruments or aggressive clipping.',
-        'Hypoallergenic & Scent-Free Options: Utilizing mild, plant-derived, paraben-free formulas that are non-irritating to sensitive airways or delicate dry skin.',
-        'Sanitized & Single-Use Instruments: Hospital-grade autoclave sterilization for all metal instruments, plus single-use consumable files.'
+        'Hair Protection: Soft scalp tension, low-heat styling, and soft brushes to protect hair roots.',
+        'Gentle Nails & Skin: Hand and foot filing without sharp metal instruments or aggressive clipping.',
+        'Hypoallergenic Options: Using mild, paraben-free formulas that are gentle on sensitive skin.',
+        'Safe Instruments: High-standard sterilization for all metal instruments and single-use disposable files.'
       ],
-      vibeText: 'Every brush, file, and cream is chosen for physical gentleness, keeping skin protected and comfortable.'
+      vibeText: 'Every tool and cream is chosen for physical gentleness, keeping skin protected and comfortable.'
     },
     {
       id: 'vetting',
-      title: 'Professional Licensing & Empathy Vetting',
+      title: 'Professional Licensing & Screening',
       icon: UserCheck,
-      subtitle: 'Rigorous National Checks & Compassion-Aligned Audits',
-      summary: 'Only the top tier of local beauty professionals join our waitlist rollout team. Beyond verifying active professional state board licenses, we screen candidates extensively for exceptional empathy, patience levels, and natural caregiving alignment.',
+      subtitle: 'Rigorous Checks & Compassion Focus',
+      summary: 'Only the best local beauty professionals join our team. Beyond verifying their state licenses, we screen candidates extensively for empathy and patience.',
       methods: [
-        'Active State Cosmetology/Manicurist Licenses: Authenticated background filings with no past state board disciplinary actions.',
-        'Background & Registry Screenings: National criminal, sex offender, and protective care registry checkouts before deployment.',
-        'Continuous Empathy Audits: Periodic caregiver feedback loops ensuring stylists uphold our strict standard of warm, patient conduct.',
-        'Ongoing Accessibility Education: Lifelong study courses regarding mobility aids, age-related skin care, and gentle communication techniques.'
+        'Active Licenses: Verified state cosmetology or manicurist licenses with clean records.',
+        'Background Screenings: National criminal and protective care registry background checks.',
+        'Empathy Focus: Gathering feedback to ensure stylists uphold our standard of warm, patient conduct.',
+        'Ongoing Education: Courses regarding mobility aids, aging skin care, and gentle communication.'
       ],
       vibeText: 'Our professionals do more than excel in beauty—they are chosen for how deeply they care.'
     }
@@ -105,7 +105,7 @@ export default function TechQualifications() {
             Trained in Respect, Certified in Safety
           </h2>
           <p className="text-slate-600 dark:text-slate-350 mt-4 text-sm md:text-lg leading-relaxed">
-            Beautiful styling begins with professional trust. Because welcoming someone into your home or assisted care space is deeply personal, our technicians are certified in a premium curriculum focusing on safety-first physical mobility and cognitive empathy.
+            Beautiful styling begins with trust. Because welcoming someone into your home is personal, our technicians are certified in a premium curriculum focusing on safety-first mobility and empathy.
           </p>
         </div>
 
@@ -161,7 +161,7 @@ export default function TechQualifications() {
                 ⭐ Trust & Professional Integrity
               </span>
               <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed font-sans">
-                Our services are limited entirely to cosmetic, wellness, and self-esteem hygiene support. Our staff works closely with primary caregivers to ensure a supportive environment, and we make no medical diagnoses, disease treatments, or clinical physical therapy claims.
+                Our services are limited entirely to cosmetic, wellness, and self-esteem support. We work closely with primary caregivers to ensure a safe environment, but do not offer medical, therapeutic, or clinical treatments.
               </p>
             </div>
           </div>

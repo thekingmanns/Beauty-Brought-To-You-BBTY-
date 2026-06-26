@@ -1,14 +1,38 @@
 import React, { useState } from 'react';
 import { Share2, Copy, Check, Facebook, Linkedin, Twitter, Heart, MessageSquare, ExternalLink, ShieldAlert } from 'lucide-react';
+import { safeLocalStorage } from '../lib/safeStorage';
+import { safeCopyToClipboard } from '../lib/safeCopyToClipboard';
 
 export default function ShareWidget({ onOpenReferral }: { onOpenReferral?: () => void }) {
-  const serviceUrl = "https://beautybroughttoyou.com";
+  const [serviceUrl] = useState(() => {
+    try {
+      if (typeof window !== 'undefined') {
+        const base = window.location.origin + window.location.pathname;
+        const savedHl = safeLocalStorage.getItem('bbty_saved_headline');
+        const savedTl = safeLocalStorage.getItem('bbty_saved_tagline');
+        
+        const params = new URLSearchParams();
+        if (savedHl) params.set('hl', savedHl);
+        if (savedTl) params.set('tl', savedTl);
+        
+        const queryStr = params.toString();
+        return queryStr ? `${base}?${queryStr}` : base;
+      }
+    } catch (e) {
+      console.warn("Failed to dynamically resolve share URL:", e);
+    }
+    return "https://beautybroughttoyou.com";
+  });
   const [copied, setCopied] = useState(false);
   const [selectedRole, setSelectedRole] = useState<'caregiver' | 'healthcare' | 'advocate'>('caregiver');
   const [shareCount, setShareCount] = useState(() => {
-    // Elegant local persistence or initial realistic seed
-    const local = localStorage.getItem('bbty_shares_count');
-    return local ? parseInt(local, 10) : 142;
+    try {
+      // Elegant local persistence or initial realistic seed
+      const local = safeLocalStorage.getItem('bbty_shares_count');
+      return local ? parseInt(local, 10) : 142;
+    } catch (e) {
+      return 142;
+    }
   });
 
   const messageTemplates = {
@@ -23,14 +47,16 @@ export default function ShareWidget({ onOpenReferral }: { onOpenReferral?: () =>
 
   const copyToClipboard = () => {
     const fullText = `${getShareText()}\n\nJoin the rollout waitlist here: ${serviceUrl}`;
-    navigator.clipboard.writeText(fullText).then(() => {
+    safeCopyToClipboard(fullText).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2500);
       
       // Increment simulated count upon user engagement
       const newCount = shareCount + 1;
       setShareCount(newCount);
-      localStorage.setItem('bbty_shares_count', String(newCount));
+      try {
+        safeLocalStorage.setItem('bbty_shares_count', String(newCount));
+      } catch (e) {}
     });
   };
 
@@ -48,12 +74,18 @@ export default function ShareWidget({ onOpenReferral }: { onOpenReferral?: () =>
     }
 
     // Open real popup
-    window.open(shareLink, '_blank', 'width=600,height=450,location=no,toolbar=no,menubar=no');
+    try {
+      window.open(shareLink, '_blank', 'width=600,height=450,location=no,toolbar=no,menubar=no');
+    } catch (e) {
+      console.warn("Popups are blocked or not allowed in this sandbox environment.", e);
+    }
 
     // Increment simulated counts on engagement
     const newCount = shareCount + 1;
     setShareCount(newCount);
-    localStorage.setItem('bbty_shares_count', String(newCount));
+    try {
+      safeLocalStorage.setItem('bbty_shares_count', String(newCount));
+    } catch (e) {}
   };
 
   const socialLinks = [
@@ -332,7 +364,9 @@ export default function ShareWidget({ onOpenReferral }: { onOpenReferral?: () =>
                         // Increment simulated counts on engagement
                         const newCount = shareCount + 1;
                         setShareCount(newCount);
-                        localStorage.setItem('bbty_shares_count', String(newCount));
+                        try {
+                          safeLocalStorage.setItem('bbty_shares_count', String(newCount));
+                        } catch (e) {}
                       }}
                       title={`Share BBTY on ${social.name}`}
                       className={`w-10 h-10 rounded-full flex items-center justify-center text-white transition-all duration-300 hover:scale-110 shadow-xs cursor-pointer ${social.color}`}

@@ -194,7 +194,7 @@ export default function CareersAndTestimonials({ onJoinTeam }: Props) {
                 id="careers-open-positions-btn"
               >
                 <Briefcase className="w-4 h-4" />
-                <span>View Open Positions</span>
+                <span>Select your Position by Joining the Wait List</span>
               </button>
             </div>
 

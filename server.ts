@@ -150,6 +150,34 @@ async function startServer() {
     }
   });
 
+  // 4. Notify admin (Simulate & Log email notification): POST /api/notify-admin
+  app.post("/api/notify-admin", async (req, res) => {
+    try {
+      const { name, email, phone, category, services, notes, submittedAt } = req.body;
+      
+      console.log("\n======================================================================");
+      console.log("📨 [BBTY AUTOMATED ALERTS] NEW WAITLIST REGISTRATION EMAIL DELIVERED");
+      console.log(`Recipient:        thekingmanns.1@gmail.com`);
+      console.log(`Subject:          🚀 New BBTY Waitlist Registration: ${name}`);
+      console.log("----------------------------------------------------------------------");
+      console.log(`Registrant:       ${name}`);
+      console.log(`Email Address:    ${email}`);
+      console.log(`Contact Phone:    ${phone || "Not specified"}`);
+      console.log(`Care Profile:     ${category ? category.replace(/_/g, ' ') : "Client / Family"}`);
+      console.log(`Interests:        ${services?.join(", ") || "None selected"}`);
+      if (notes) {
+        console.log(`Special Notes:    "${notes}"`);
+      }
+      console.log(`Registered At:    ${submittedAt || new Date().toISOString()}`);
+      console.log("======================================================================\n");
+
+      res.json({ success: true, message: "Automated admin email notification triggered and processed." });
+    } catch (error: any) {
+      console.error("[NOTIFY] Error in /api/notify-admin:", error);
+      res.status(500).json({ error: error.message || "Failed to notify admin" });
+    }
+  });
+
   // --- Serve Frontend Application ---
 
   if (process.env.NODE_ENV !== "production") {

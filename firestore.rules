@@ -8,9 +8,17 @@ service cloud.firestore {
 
     // 2. Waitlist entries (Pillar #2, #3, #10)
     match /waitlist/{signUpId} {
-      allow read: if true;
       allow create: if isValidWaitlist(request.resource.data);
-      allow delete: if true;
+      // Only authorized administrators (like the project owner) can view or modify the list of registered users
+      allow read, update, delete: if request.auth != null && (
+        request.auth.token.admin == true || 
+        request.auth.token.email == "thekingmanns.1@gmail.com"
+      );
+    }
+
+    // Publicly accessible waitlist counts (for real-time metrics without leaking private data)
+    match /stats/waitlist_stats {
+      allow read, write: if true;
     }
   }
 }
@@ -19,13 +27,13 @@ service cloud.firestore {
 function isValidWaitlist(data) {
   return data.keys().hasAll(['name', 'email', 'phone', 'category', 'services', 'submittedAt']) 
     // Enforce exact key limits to prevent "Shadow updates" / "Ghost fields" (Pillar #2 & Red Team Shadow Update Test)
-    && data.keys().size() <= 8
+    && data.size() <= 8
     
     // Explicit type & boundary definitions (Pillar #2 & Pillar #10)
     && data.name is string && data.name.size() > 0 && data.name.size() <= 100
     && data.email is string && data.email.size() > 0 && data.email.size() <= 128
     && data.phone is string && data.phone.size() <= 32
-    && data.category is string && data.category in ['client', 'family', 'facility', 'salon_owner', 'independent_pro', 'graduate']
+    && data.category is string && data.category in ['client_family', 'facility_partner', 'salon_owner_stylist', 'independent_professional', 'aspiring_technician']
     && data.services is list && data.services.size() <= 15
     && (!('notes' in data) || (data.notes is string && data.notes.size() <= 1000))
     && data.submittedAt is string;

@@ -10,9 +10,14 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Sparkles, ArrowRight, ShieldCheck, Menu, X, Sun, Moon, Gift, Home, Check, CheckCircle, Heart, Star, Calendar, MessageSquare, Briefcase, ZoomIn, Contrast, Type, Volume2, VolumeX, TrendingUp, ArrowUp } from 'lucide-react';
-import confetti from 'canvas-confetti';
+import { Sparkles, ArrowRight, ShieldCheck, Menu, X, Sun, Moon, Gift, Home, Check, CheckCircle, Heart, Star, Calendar, MessageSquare, Briefcase, ZoomIn, Contrast, Type, Volume2, VolumeX, TrendingUp, ArrowUp, Building, Scissors, Users, QrCode, Smartphone } from 'lucide-react';
+import { safeConfetti } from './lib/safeConfetti';
+
+import { collection, onSnapshot, doc } from 'firebase/firestore';
+import { db, isFirebaseSupported } from './lib/firebase';
+
 import { useAccessibility } from './context/AccessibilityContext';
+import { safeLocalStorage } from './lib/safeStorage';
 import BrandKit from './components/BrandKit';
 import WhyNeedsBrought from './components/WhyNeedsBrought';
 import Facilitators from './components/Facilitators';
@@ -28,7 +33,11 @@ import ServicesCatalog from './components/ServicesCatalog';
 import CoreValueGrid from './components/CoreValueGrid';
 import GurleyBearSection from './components/GurleyBearSection';
 import CareersAndTestimonials from './components/CareersAndTestimonials';
+import NewGradsSection from './components/NewGradsSection';
 import PrivacyPolicy from './components/PrivacyPolicy';
+import SecurityModal from './components/SecurityModal';
+
+import WelcomePage from './components/WelcomePage';
 
 // Exact premium match of the customized fuchsia-purple-blue-cyan gradient scissor, road, and house brand logo
 const BrandLogoIcon = ({ className = "w-11 h-11" }: { className?: string }) => (
@@ -122,34 +131,143 @@ const BrandLogoIcon = ({ className = "w-11 h-11" }: { className?: string }) => (
   </svg>
 );
 
-const getWaitlistSize = () => {
-  const BASE_WAITLIST_NUMBER = 142;
+const getWaitlistData = () => {
   try {
-    const stored = localStorage.getItem('bbty_waitlist_db');
+    const stored = safeLocalStorage.getItem('bbty_waitlist_db');
     if (stored) {
       const parsed = JSON.parse(stored);
       if (Array.isArray(parsed)) {
-        return BASE_WAITLIST_NUMBER + parsed.length;
+        return parsed;
       }
     }
-    return BASE_WAITLIST_NUMBER + 3; // base 142 + 3 initial seed entries
   } catch (e) {
-    return BASE_WAITLIST_NUMBER + 3;
+  }
+  return [];
+};
+
+const getInitialHeadline = () => {
+  try {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const hlParam = params.get('hl');
+      if (hlParam) {
+        const decoded = decodeURIComponent(hlParam);
+        safeLocalStorage.setItem('bbty_saved_headline', decoded);
+        return decoded;
+      }
+    }
+  } catch (e) {
+    console.warn("Failed to parse hl query param:", e);
+  }
+  try {
+    const stored = safeLocalStorage.getItem('bbty_saved_headline');
+    if (stored) return stored;
+  } catch (e) {}
+  return "Experience \"Beauty Brought To You!\"";
+};
+
+const getInitialTagline = () => {
+  try {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const tlParam = params.get('tl');
+      if (tlParam) {
+        const decoded = decodeURIComponent(tlParam);
+        safeLocalStorage.setItem('bbty_saved_tagline', decoded);
+        return decoded;
+      }
+    }
+  } catch (e) {
+    console.warn("Failed to parse tl query param:", e);
+  }
+  try {
+    const stored = safeLocalStorage.getItem('bbty_saved_tagline');
+    if (stored) {
+      if (
+        stored.includes("At BBTY Pros, our mission is to make professional") ||
+        stored.includes("privacy of our clients' homes or any place that is convenient")
+      ) {
+        const newDefault = "At BBTY, our mission is to make professional Beauty & Wellness services accessible, convenient by bringing trusted salon-quality experiences directly to the privacy of our clients homes or  to any desired place that is convenient and suitable to provide adequate service.";
+        safeLocalStorage.setItem('bbty_saved_tagline', newDefault);
+        return newDefault;
+      }
+      return stored;
+    }
+  } catch (e) {}
+  return "At BBTY, our mission is to make professional Beauty & Wellness services accessible, convenient by bringing trusted salon-quality experiences directly to the privacy of our clients homes or  to any desired place that is convenient and suitable to provide adequate service.";
+};
+
+const safeScrollTo = (options: ScrollToOptions | number, y?: number) => {
+  try {
+    if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') {
+      if (typeof options === 'number') {
+        window.scrollTo(options, y ?? 0);
+      } else {
+        window.scrollTo(options);
+      }
+    }
+  } catch (e) {
+    console.warn("window.scrollTo is not fully supported or is blocked in this environment.", e);
   }
 };
 
 export default function App() {
-  const [headline, setHeadline] = useState("Compassionate Beauty & Wellness Care, Brought To You");
-  const [tagline, setTagline] = useState("Private in-home care. Professional mobile services. We bring comfort, confidence, and quality care to seniors, diabetics, disabled clients, and busy households.");
+  const [showWelcome, setShowWelcome] = useState(true);
+  const [headline, setHeadline] = useState(getInitialHeadline);
+  const [tagline, setTagline] = useState(getInitialTagline);
   const [activeTab, setActiveTab] = useState('clients');
   const [currentPage, setCurrentPage] = useState<'home' | 'privacy'>('home');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [referModalOpen, setReferModalOpen] = useState(false);
   const [advocateModalOpen, setAdvocateModalOpen] = useState(false);
+  const [securityModalOpen, setSecurityModalOpen] = useState(false);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
-  const [waitlistCount, setWaitlistCount] = useState<number>(145);
+  const [waitlistCount, setWaitlistCount] = useState<number>(0);
+  const [todaySignupsCount, setTodaySignupsCount] = useState<number>(0);
   const [prevCount, setPrevCount] = useState<number | null>(null);
+  const [particles, setParticles] = useState<{ id: number; left: number; top: number; delay: number; color: string; size: number }[]>([]);
+  const [floatingEmojis, setFloatingEmojis] = useState<{ id: number; left: number; top: number; text: string; delay: number; scale: number; velocityX: number; rotation: number }[]>([]);
   const [scrollY, setScrollY] = useState(0);
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
+
+  const triggerEmojis = () => {
+    const emojis = ['🎈', '🎉', '✨', '💖', '🚀', '💅', '💇‍♀️', '🥳', '💄', '⭐'];
+    const newEmojis = Array.from({ length: 8 }).map((_, i) => ({
+      id: Date.now() + i + Math.random(),
+      left: Math.random() * 70 + 15,
+      top: Math.random() * 20 + 60,
+      text: emojis[Math.floor(Math.random() * emojis.length)],
+      delay: Math.random() * 0.3,
+      scale: Math.random() * 0.4 + 0.8,
+      velocityX: (Math.random() - 0.5) * 40,
+      rotation: (Math.random() - 0.5) * 60,
+    }));
+    setFloatingEmojis((prev) => [...prev.slice(-15), ...newEmojis]);
+  };
+
+  const triggerParticles = () => {
+    const colors = ['#ec4899', '#a855f7', '#3b82f6', '#10b981', '#fbbf24', '#f43f5e', '#06b6d4'];
+    const newParticles = Array.from({ length: 22 }).map((_, i) => ({
+      id: Date.now() + i + Math.random(),
+      left: Math.random() * 80 + 10,
+      top: Math.random() * 30 + 50,
+      delay: Math.random() * 0.4,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      size: Math.random() * 8 + 4,
+    }));
+    setParticles((prev) => [...prev.slice(-40), ...newParticles]);
+    triggerEmojis();
+  };
+
+  const getShareUrl = () => {
+    if (typeof window === 'undefined') return 'https://beautybroughttoyou.com';
+    const base = window.location.origin + window.location.pathname;
+    const params = new URLSearchParams();
+    if (headline) params.set('hl', headline);
+    if (tagline) params.set('tl', tagline);
+    const queryStr = params.toString();
+    return queryStr ? `${base}?${queryStr}` : base;
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -162,23 +280,117 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    setWaitlistCount(getWaitlistSize());
+    try {
+      if (headline) {
+        safeLocalStorage.setItem('bbty_saved_headline', headline);
+      }
+    } catch (e) {}
+  }, [headline]);
 
-    const handleWaitlistUpdate = () => {
-      setWaitlistCount(getWaitlistSize());
+  useEffect(() => {
+    try {
+      if (tagline) {
+        safeLocalStorage.setItem('bbty_saved_tagline', tagline);
+      }
+    } catch (e) {}
+  }, [tagline]);
+
+  useEffect(() => {
+    let unsubscribeFirestore: (() => void) | null = null;
+
+    const updateStatsFromLocal = () => {
+      const data = getWaitlistData();
+      
+      let count = data.length > 0 ? (180 + data.length) : 180;
+      try {
+        const storedStats = safeLocalStorage.getItem('bbty_stats_count');
+        if (storedStats) {
+          const num = parseInt(storedStats, 10);
+          if (!isNaN(num) && num > count) {
+            count = num;
+          }
+        }
+      } catch (e) {}
+
+      setWaitlistCount(count);
+      
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const todayCount = data.filter((item: any) => {
+        if (!item.submittedAt) return false;
+        try {
+          const itemDate = new Date(item.submittedAt);
+          return itemDate >= today;
+        } catch(e) {
+          return false;
+        }
+      }).length;
+      
+      setTodaySignupsCount(todayCount);
     };
 
-    window.addEventListener('bbty_waitlist_updated', handleWaitlistUpdate);
-    window.addEventListener('storage', handleWaitlistUpdate);
+    if (isFirebaseSupported && db) {
+      try {
+        // Pull directly from public Firestore stats document in real-time
+        unsubscribeFirestore = onSnapshot(doc(db, "stats", "waitlist_stats"), (snapshot) => {
+          if (snapshot.exists()) {
+            const data = snapshot.data();
+            const totalCount = data.count || 0;
+            
+            let finalCount = totalCount;
+            try {
+              const storedStats = safeLocalStorage.getItem('bbty_stats_count');
+              if (storedStats) {
+                const num = parseInt(storedStats, 10);
+                if (!isNaN(num) && num > finalCount) {
+                  finalCount = num;
+                }
+              }
+            } catch (e) {}
+
+            setWaitlistCount(finalCount);
+
+            // Fetch today's signups count from the statistics document
+            const todayStr = new Date().toISOString().split('T')[0];
+            let todayCount = 0;
+            if (data.lastUpdatedDate === todayStr) {
+              todayCount = data.todayCount || 0;
+            }
+            setTodaySignupsCount(todayCount);
+          } else {
+            updateStatsFromLocal();
+          }
+        }, (error) => {
+          console.warn("Could not load real-time dashboard stats from Firestore, falling back to local:", error);
+          updateStatsFromLocal();
+        });
+      } catch (e) {
+        console.warn("Firestore stats listener failed to initialize:", e);
+        updateStatsFromLocal();
+      }
+    } else {
+      updateStatsFromLocal();
+    }
+
+    const onUpdateEvent = () => {
+      updateStatsFromLocal();
+    };
+
+    window.addEventListener('bbty_waitlist_updated', onUpdateEvent);
+    window.addEventListener('storage', onUpdateEvent);
 
     return () => {
-      window.removeEventListener('bbty_waitlist_updated', handleWaitlistUpdate);
-      window.removeEventListener('storage', handleWaitlistUpdate);
+      if (unsubscribeFirestore) {
+        try { unsubscribeFirestore(); } catch (e) {}
+      }
+      window.removeEventListener('bbty_waitlist_updated', onUpdateEvent);
+      window.removeEventListener('storage', onUpdateEvent);
     };
   }, []);
 
   useEffect(() => {
     if (prevCount !== null && waitlistCount > prevCount) {
+      triggerParticles();
       const isMultipleOf50 = waitlistCount % 50 === 0;
       const isMultipleOf5 = waitlistCount % 5 === 0;
 
@@ -198,12 +410,12 @@ export default function App() {
           }
 
           const particleCount = 60 * (timeLeft / duration);
-          confetti({ ...defaults, particleCount, colors: ['#ec4899', '#a855f7', '#3b82f6', '#10b981', '#fbbf24'], origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
-          confetti({ ...defaults, particleCount, colors: ['#ec4899', '#a855f7', '#3b82f6', '#10b981', '#fbbf24'], origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
+          safeConfetti({ ...defaults, particleCount, colors: ['#ec4899', '#a855f7', '#3b82f6', '#10b981', '#fbbf24'], origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
+          safeConfetti({ ...defaults, particleCount, colors: ['#ec4899', '#a855f7', '#3b82f6', '#10b981', '#fbbf24'], origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
         }, 250);
       } else if (isMultipleOf5) {
         // High-end milestone interval blast
-        confetti({
+        safeConfetti({
           particleCount: 160,
           spread: 90,
           origin: { y: 0.6 },
@@ -212,7 +424,7 @@ export default function App() {
         });
       } else {
         // Classic responsive signup burst
-        confetti({
+        safeConfetti({
           particleCount: 90,
           spread: 60,
           origin: { y: 0.65 },
@@ -231,51 +443,123 @@ export default function App() {
 
   // Play Out Loud state using Speech Synthesis for interactive assistance
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const [selectedLang, setSelectedLang] = useState<string>('en');
+
+  // Helper to safely get speechSynthesis and avoid SecurityError in sandboxed iframes
+  const getSafeSpeechSynthesis = (): SpeechSynthesis | null => {
+    if (typeof window === 'undefined') return null;
+    try {
+      const synth = window.speechSynthesis;
+      return synth || null;
+    } catch (e) {
+      console.warn("Speech Synthesis is blocked or unsupported in this sandbox environment.", e);
+      return null;
+    }
+  };
 
   useEffect(() => {
-    // Graceful cleanup to stop reading if the user navigates away or unmounts
+    const synth = getSafeSpeechSynthesis();
+    if (synth) {
+      const loadVoices = () => {
+        try {
+          setVoices(synth.getVoices());
+        } catch (e) {
+          console.warn("Failed to load voices:", e);
+        }
+      };
+      loadVoices();
+      try {
+        synth.onvoiceschanged = loadVoices;
+      } catch (e) {
+        console.warn("Failed to assign onvoiceschanged handler:", e);
+      }
+    }
+  }, []);
+
+  // Graceful cleanup to stop reading if the user navigates away or unmounts
+  useEffect(() => {
     return () => {
-      if (typeof window !== 'undefined' && window.speechSynthesis) {
-        window.speechSynthesis.cancel();
+      const synth = getSafeSpeechSynthesis();
+      if (synth) {
+        try {
+          synth.cancel();
+        } catch (e) {
+          console.warn("Failed to cancel speech synthesis:", e);
+        }
       }
     };
   }, []);
 
   const togglePlayOutLoud = () => {
-    if (typeof window === 'undefined' || !window.speechSynthesis) {
-      alert("Text to speech is not supported in this browser.");
+    const synth = getSafeSpeechSynthesis();
+    if (!synth || typeof SpeechSynthesisUtterance === 'undefined') {
+      console.warn("Text to speech is not supported, blocked, or SpeechSynthesisUtterance is undefined in this environment.");
       return;
     }
 
-    if (isSpeaking) {
-      window.speechSynthesis.cancel();
+    try {
+      if (isSpeaking) {
+        synth.cancel();
+        setIsSpeaking(false);
+      } else {
+        synth.cancel(); // Stop any pending or legacy speaking queue elements
+        
+        // Deduplicate overlapping texts (e.g., span inside p) to avoid double reading
+        // A simpler way: just grab document.body.innerText, but since that includes buttons and ui elements,
+        // innerText of a main container is better.
+        const mainContainer = document.querySelector('main') || document.body;
+        const textToRead = mainContainer.innerText || document.body.innerText;
+
+        // Clean up text
+        const cleanText = textToRead.replace(/\s+/g, ' ').trim();
+        
+        // To prevent utterance truncation in some browsers, slice into smaller chunks by sentences
+        // or chunks of ~200 characters ending at a space.
+        const chunks = cleanText.match(/[^.!?]+[.!?]+/g) || [cleanText];
+        
+        if (chunks.length === 0) {
+          setIsSpeaking(false);
+          return;
+        }
+
+        setIsSpeaking(true);
+
+        chunks.forEach((chunk, index) => {
+          try {
+            const utterance = new SpeechSynthesisUtterance(chunk.trim());
+            utterance.lang = selectedLang;
+            
+            const matchingVoice = voices.find(v => v.lang.startsWith(selectedLang));
+            if (matchingVoice) {
+              utterance.voice = matchingVoice;
+            }
+            
+            // Warm, accessible, highly clear slow pacing for elderly or visually impaired users
+            utterance.rate = 0.88;
+            utterance.pitch = 1.0;
+
+            if (index === chunks.length - 1) {
+              utterance.onend = () => {
+                setIsSpeaking(false);
+              };
+            }
+
+            utterance.onerror = (e) => {
+              console.warn("Speech Synthesis failure:", e);
+              setIsSpeaking(false);
+            };
+
+            synth.speak(utterance);
+          } catch (err) {
+            console.warn("Failed to speak chunk:", err);
+            setIsSpeaking(false);
+          }
+        });
+      }
+    } catch (e) {
+      console.warn("Speech Synthesis toggling failed:", e);
       setIsSpeaking(false);
-    } else {
-      window.speechSynthesis.cancel(); // Stop any pending or legacy speaking queue elements
-      
-      const textToRead = `Welcome to BBTY. Compassionate Beauty and Wellness Care, Brought To You. ` +
-                         `${headline}. ` +
-                         `${tagline}. ` +
-                         `We provide premium, personalized in-home cosmetics, hairdressing, and full body wellness therapies customized to seniors, diabetic comfort needs, and disabled client care. ` +
-                         `Use our accessibility panel to toggle High Contrast, adjust text Readability size, or book your private clinical styling consultation today!`;
-
-      const utterance = new SpeechSynthesisUtterance(textToRead);
-      
-      // Warm, accessible, highly clear slow pacing for elderly or visually impaired users
-      utterance.rate = 0.88;
-      utterance.pitch = 1.0;
-
-      utterance.onend = () => {
-        setIsSpeaking(false);
-      };
-
-      utterance.onerror = (e) => {
-        console.error("Speech Synthesis failure:", e);
-        setIsSpeaking(false);
-      };
-
-      setIsSpeaking(true);
-      window.speechSynthesis.speak(utterance);
     }
   };
 
@@ -314,7 +598,7 @@ export default function App() {
           const elementPosition = elementRect - bodyRect;
           const offsetPosition = elementPosition - offset;
 
-          window.scrollTo({
+          safeScrollTo({
             top: offsetPosition,
             behavior: 'smooth'
           });
@@ -331,7 +615,7 @@ export default function App() {
       const elementPosition = elementRect - bodyRect;
       const offsetPosition = elementPosition - offset;
 
-      window.scrollTo({
+      safeScrollTo({
         top: offsetPosition,
         behavior: 'smooth'
       });
@@ -343,9 +627,22 @@ export default function App() {
     scrollToSection('audience-explorer');
   };
 
+  const availableLangs = Array.from(new Set(voices.map(v => v.lang.slice(0, 2)))) as string[];
+  const langNames: Record<string, string> = {
+    en: 'English', es: 'Español', fr: 'Français', de: 'Deutsch',
+    it: 'Italiano', pt: 'Português', zh: '中文', ja: '日本語',
+    ko: '한국어', ru: 'Русский', hi: 'हिन्दी', ar: 'العربية'
+  };
+
   return (
     <div className="min-h-screen max-w-full overflow-x-hidden bg-transparent text-slate-800 dark:text-slate-100 font-sans selection:bg-pink-100 selection:text-pink-900 scroll-smooth antialiased transition-colors duration-200">
       
+      <AnimatePresence>
+        {showWelcome && (
+          <WelcomePage onComplete={() => setShowWelcome(false)} />
+        )}
+      </AnimatePresence>
+
       {/* Scroll Progress Bar at the very top of the viewport */}
       <div className="fixed top-0 left-0 w-full h-[4px] bg-slate-200/20 dark:bg-slate-900/30 z-[100] pointer-events-none">
         <div 
@@ -445,7 +742,7 @@ export default function App() {
       <div className="bg-amber-500 text-slate-950 px-4 py-2 text-xs font-medium text-center relative z-50 flex items-center justify-center gap-2 border-b border-amber-600/20">
         <Sparkles className="w-3.5 h-3.5 text-slate-950 flex-shrink-0" />
         <span>
-          <strong>COMMUNITY INSIGHT:</strong> We represent beauty, hydration, hair styling, and comfort care. No clinical diagnoses, physical therapy or medical services are offered or promised.
+          <strong>NOTE:</strong> We provide beauty, grooming, and comfort care. We do not provide clinical or medical services.
         </span>
       </div>
 
@@ -463,7 +760,7 @@ export default function App() {
               className="flex items-center gap-3 px-3.5 py-2 bg-slate-50/80 dark:bg-slate-900/40 border border-slate-100/80 dark:border-slate-800/50 rounded-2xl hover:bg-slate-100/60 dark:hover:bg-slate-900/60 hover:border-slate-200/50 dark:hover:border-slate-800/85 transition-all duration-300 hover:shadow-xs cursor-pointer select-none" 
               onClick={() => {
                 setCurrentPage('home');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
+                safeScrollTo({ top: 0, behavior: 'smooth' });
               }}
             >
               <div className="w-11 h-11 flex items-center justify-center relative bg-white dark:bg-slate-950 rounded-xl p-0.5 shadow-4xs border border-slate-100/40 dark:border-slate-850/20 hover:scale-105 transition-transform duration-300 flex-shrink-0">
@@ -489,7 +786,7 @@ export default function App() {
               <button 
                 onClick={() => {
                   setCurrentPage('home');
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                  safeScrollTo({ top: 0, behavior: 'smooth' });
                 }}
                 className="px-3 py-2 text-slate-600 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
               >
@@ -526,6 +823,12 @@ export default function App() {
                 Careers
               </button>
               <button 
+                onClick={() => scrollToSection('new-grads-program')}
+                className="px-3 py-2 text-slate-600 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
+              >
+                New Grads
+              </button>
+              <button 
                 onClick={() => scrollToSection('waitlist-form-block')}
                 className="px-3 py-2 text-slate-600 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
               >
@@ -538,45 +841,12 @@ export default function App() {
               
               {/* Premium Accessibility & Preference Control Center with Accent Border */}
               <div className="flex items-center gap-2 bg-pink-50/50 dark:bg-slate-900/60 p-1.5 rounded-2xl border-2 border-pink-100/40 dark:border-slate-800/80 shadow-[0_2px_12px_rgba(219,39,119,0.05)]" id="desktop-accessibility-suite">
-                {/* 1. Theme Selector (Dark/Light) */}
-                <button
-                  onClick={toggleDarkMode}
-                  className={`px-3.5 py-2.5 rounded-xl border transition-all duration-300 cursor-pointer flex items-center justify-center gap-1.5 ${
-                    isDarkMode
-                      ? "border-amber-500/40 bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 shadow-xs"
-                      : "border-slate-200/80 bg-white/95 text-slate-750 hover:bg-white hover:text-slate-900 hover:shadow-xs"
-                  }`}
-                  aria-label="Toggle Night Mode"
-                  title={isDarkMode ? "Switch to Light Mode" : "Switch to Night Mode"}
-                >
-                  {isDarkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-500" />}
-                  <span className="text-[10px] font-mono font-black tracking-wider uppercase leading-none select-none">
-                    {isDarkMode ? "Light Look" : "Night Look"}
-                  </span>
-                </button>
-
-                {/* 2. High Contrast Selector */}
-                <button
-                  onClick={toggleHighContrastMode}
-                  className={`px-3.5 py-2.5 rounded-xl border transition-all duration-300 cursor-pointer flex items-center justify-center gap-1.5 ${
-                    isHighContrast 
-                      ? "border-pink-500 bg-pink-500/20 text-pink-600 dark:text-pink-400 font-black shadow-xs scale-[1.02]" 
-                      : "border-slate-200/80 bg-white/95 text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-900 hover:text-slate-900 dark:hover:text-white hover:shadow-xs"
-                  }`}
-                  aria-label="Toggle High Contrast Mode"
-                  aria-pressed={isHighContrast}
-                  title={isHighContrast ? "Disable High Contrast mode" : "Enable High Contrast mode"}
-                >
-                  <Contrast className={`w-4 h-4 transition-transform duration-300 ${isHighContrast ? "rotate-180 text-pink-500" : "text-slate-500"}`} />
-                  <span className="text-[10px] font-mono font-black tracking-wider uppercase leading-none select-none">Contrast</span>
-                </button>
-
                 {/* 3. Readability Fonts Mode */}
                 <button
                   onClick={toggleReadabilityMode}
                   className={`px-3.5 py-2.5 rounded-xl border transition-all duration-300 cursor-pointer flex items-center justify-center gap-1.5 ${
                     isReadabilityMode 
-                      ? "border-pink-500 bg-pink-500/20 text-pink-600 dark:text-pink-400 font-black shadow-xs scale-[1.02]" 
+                      ? "border-pink-500 bg-pink-500/20 text-pink-600 dark:text-pink-400 font-black shadow-xs scale-[1.02] animate-[pulse_2s_infinite]" 
                       : "border-slate-200/80 bg-white/95 text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-900 hover:text-slate-900 dark:hover:text-white hover:shadow-xs"
                   }`}
                   aria-label="Toggle Readability Mode"
@@ -604,8 +874,20 @@ export default function App() {
                   ) : (
                     <Volume2 className="w-4 h-4 text-slate-500" />
                   )}
-                  <span className="text-[10px] font-mono font-black tracking-wider uppercase leading-none select-none">Read Aloud</span>
+                  <span className="text-[10px] font-mono font-black tracking-wider uppercase leading-none select-none">Read out loud</span>
                 </button>
+                {availableLangs.length > 0 && (
+                  <select
+                    value={selectedLang}
+                    onChange={(e) => setSelectedLang(e.target.value)}
+                    className="ml-1 px-2 py-2.5 rounded-xl border border-slate-200/80 bg-white/95 text-slate-600 dark:text-slate-400 dark:border-slate-800 dark:bg-slate-900 text-xs font-mono font-bold uppercase cursor-pointer hover:border-slate-300 dark:hover:border-slate-700 outline-none transition-colors"
+                    aria-label="Select language for Read Out Loud"
+                  >
+                    {availableLangs.map(lang => (
+                      <option key={lang} value={lang}>{langNames[lang] || lang.toUpperCase()}</option>
+                    ))}
+                  </select>
+                )}
               </div>
 
               <button
@@ -625,7 +907,7 @@ export default function App() {
                 onClick={() => scrollToSection('waitlist-form-block')}
                 className="px-6 py-2.5 bg-gradient-to-r from-pink-500 via-purple-600 to-blue-600 hover:from-pink-600 hover:via-purple-700 hover:to-blue-700 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-300 shadow-[0_4px_16px_rgba(219,39,119,0.25)] hover:shadow-[0_12px_28px_rgba(219,39,119,0.55)] border border-t-white/30 border-pink-400/40 hover:scale-[1.05] active:scale-[0.95] cursor-pointer"
               >
-                Book Now
+                Join our wait list
               </button>
             </div>
 
@@ -634,54 +916,10 @@ export default function App() {
               
               {/* Premium Interactive Accessibility Control Badge For Mobile Shortcuts */}
               <div className="flex items-center gap-1.5 bg-pink-50/70 dark:bg-slate-900/60 p-1.5 rounded-2xl border border-pink-100/60 dark:border-slate-800/80 shadow-[0_1px_8px_rgba(219,39,119,0.03)]" id="mobile-accessibility-shortcuts">
-                {/* Mobile quick theme click */}
-                <button
-                  onClick={toggleDarkMode}
-                  className={`p-2 rounded-xl border focus:outline-none cursor-pointer transition-all active:scale-[0.88] ${
-                    isDarkMode
-                      ? "border-amber-500/30 bg-amber-500/15 text-amber-500"
-                      : "border-slate-200/50 bg-white/90 text-slate-500"
-                  }`}
-                  aria-label="Toggle Theme"
-                  title="Toggle light/dark mode"
-                >
-                  {isDarkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4" />}
-                </button>
-
-                {/* Mobile quick high contrast click */}
-                <button
-                  onClick={toggleHighContrastMode}
-                  className={`p-2 rounded-xl border focus:outline-none cursor-pointer flex items-center justify-center transition-all active:scale-[0.88] ${
-                    isHighContrast
-                      ? "border-pink-500 bg-pink-500/15 text-pink-600 dark:text-pink-400 font-extrabold"
-                      : "border-slate-200/50 bg-white/90 text-slate-500 dark:text-slate-400"
-                  }`}
-                  aria-label="Toggle High Contrast Mode"
-                  aria-pressed={isHighContrast}
-                  title={isHighContrast ? "Disable High Contrast" : "Enable High Contrast"}
-                >
-                  <Contrast className={`w-4 h-4 ${isHighContrast ? "rotate-180 text-pink-500" : ""}`} />
-                </button>
-
-                {/* Mobile quick readability click */}
-                <button
-                  onClick={toggleReadabilityMode}
-                  className={`p-2 rounded-xl border focus:outline-none cursor-pointer flex items-center justify-center transition-all active:scale-[0.88] ${
-                    isReadabilityMode
-                      ? "border-pink-500 bg-pink-500/15 text-pink-600 dark:text-pink-400 font-extrabold"
-                      : "border-slate-200/50 bg-white/90 text-slate-500 dark:text-slate-400"
-                  }`}
-                  aria-label="Toggle Readability Mode"
-                  aria-pressed={isReadabilityMode}
-                  title={isReadabilityMode ? "Disable Readability" : "Enable Readability"}
-                >
-                  <Type className={`w-4 h-4 ${isReadabilityMode ? "text-pink-500" : ""}`} />
-                </button>
-
                 {/* Mobile quick play out loud click */}
                 <button
                   onClick={togglePlayOutLoud}
-                  className={`p-2 rounded-xl border focus:outline-none cursor-pointer flex items-center justify-center transition-all active:scale-[0.88] ${
+                  className={`p-2 rounded-xl border focus:outline-none cursor-pointer flex items-center justify-center gap-1.5 transition-all active:scale-[0.88] ${
                     isSpeaking
                       ? "border-pink-500 bg-pink-500/15 text-pink-600 dark:text-pink-400 animate-pulse"
                       : "border-slate-200/50 bg-white/90 text-slate-500 dark:text-slate-400"
@@ -695,7 +933,20 @@ export default function App() {
                   ) : (
                     <Volume2 className="w-4 h-4" />
                   )}
+                  <span className="text-[10px] font-mono font-black tracking-wider uppercase leading-none select-none">Read out loud</span>
                 </button>
+                {availableLangs.length > 0 && (
+                  <select
+                    value={selectedLang}
+                    onChange={(e) => setSelectedLang(e.target.value)}
+                    className="p-2 rounded-xl border focus:outline-none cursor-pointer flex items-center justify-center transition-all active:scale-[0.88] border-slate-200/50 bg-white/90 text-slate-500 dark:text-slate-400 dark:bg-slate-900 text-[10px] font-mono font-black uppercase"
+                    aria-label="Select language for Read Out Loud"
+                  >
+                    {availableLangs.map(lang => (
+                      <option key={lang} value={lang}>{langNames[lang] || lang.toUpperCase()}</option>
+                    ))}
+                  </select>
+                )}
               </div>
 
               {/* Hamburger Button */}
@@ -715,30 +966,34 @@ export default function App() {
         {/* Mobile Navigation Dropdown Panel */}
         {mobileMenuOpen && (
           <div className="lg:hidden bg-white dark:bg-slate-950 border-b border-slate-200/60 dark:border-slate-900 px-6 sm:px-10 pt-4 pb-8 space-y-3.5 text-left shadow-xl transition-all duration-300">
-            <span className="text-[10px] font-bold font-mono text-slate-400 dark:text-slate-500 uppercase tracking-widest block px-4 py-1">Audience Profiles</span>
+            <span className="text-[10px] font-bold font-mono text-slate-400 dark:text-slate-500 uppercase tracking-widest block px-4 py-1">Select your profession below</span>
             <button
               onClick={() => handleTabScroll('clients')}
-              className="w-full text-left block px-4 py-3.5 rounded-xl text-xs font-medium text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-850 hover:bg-slate-100 dark:hover:bg-slate-850"
+              className={`w-full text-left flex items-center gap-2 px-4 py-3.5 rounded-xl text-xs font-medium transition-colors ${activeTab === 'clients' ? 'bg-pink-50 text-pink-600 border border-pink-200 dark:bg-pink-900/20 dark:text-pink-400 dark:border-pink-800/60' : 'text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-850 hover:bg-slate-100 dark:hover:bg-slate-850'}`}
             >
-              🏡 Clients, Caregivers & Families
+              <Users className="w-4 h-4" />
+              Clients, Caregivers & Families
             </button>
             <button
               onClick={() => handleTabScroll('facilities')}
-              className="w-full text-left block px-4 py-3.5 rounded-xl text-xs font-medium text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-850 hover:bg-slate-100 dark:hover:bg-slate-850"
+              className={`w-full text-left flex items-center gap-2 px-4 py-3.5 rounded-xl text-xs font-medium transition-colors ${activeTab === 'facilities' ? 'bg-pink-50 text-pink-600 border border-pink-200 dark:bg-pink-900/20 dark:text-pink-400 dark:border-pink-800/60' : 'text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-850 hover:bg-slate-100 dark:hover:bg-slate-850'}`}
             >
-              🏢 Senior living & Care facilities
+              <Building className="w-4 h-4" />
+              Senior living & Care facilities
             </button>
             <button
               onClick={() => handleTabScroll('salons')}
-              className="w-full text-left block px-4 py-3.5 rounded-xl text-xs font-medium text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-850 hover:bg-slate-100 dark:hover:bg-slate-850"
+              className={`w-full text-left flex items-center gap-2 px-4 py-3.5 rounded-xl text-xs font-medium transition-colors ${activeTab === 'salons' ? 'bg-pink-50 text-pink-600 border border-pink-200 dark:bg-pink-900/20 dark:text-pink-400 dark:border-pink-800/60' : 'text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-850 hover:bg-slate-100 dark:hover:bg-slate-850'}`}
             >
-              💇 Salon Owners & partnerships
+              <Scissors className="w-4 h-4" />
+              Salon Owners & partnerships
             </button>
             <button
               onClick={() => handleTabScroll('independent')}
-              className="w-full text-left block px-4 py-3.5 rounded-xl text-xs font-medium text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-850 hover:bg-slate-100 dark:hover:bg-slate-850"
+              className={`w-full text-left flex items-center gap-2 px-4 py-3.5 rounded-xl text-xs font-medium transition-colors ${activeTab === 'independent' ? 'bg-pink-50 text-pink-600 border border-pink-200 dark:bg-pink-900/20 dark:text-pink-400 dark:border-pink-800/60' : 'text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-850 hover:bg-slate-100 dark:hover:bg-slate-850'}`}
             >
-              💼 Independent contractors
+              <Briefcase className="w-4 h-4" />
+              Independent contractors
             </button>
             
             <div className="border-t border-slate-100 dark:border-slate-900 pt-4 flex flex-col gap-3">
@@ -759,6 +1014,12 @@ export default function App() {
                 className="w-full text-left block px-4 py-3 rounded-xl text-xs font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-900/40"
               >
                 Frequently Asked FAQs
+              </button>
+              <button
+                onClick={() => scrollToSection('new-grads-program')}
+                className="w-full text-left block px-4 py-3 rounded-xl text-xs font-bold text-pink-600 dark:text-pink-400 hover:bg-pink-50 dark:hover:bg-pink-950/20"
+              >
+                🎓 New Grads Careers Program
               </button>
               
               <button
@@ -888,11 +1149,13 @@ export default function App() {
               <div className="md:col-span-1 lg:col-span-7 space-y-6">
                 
                 {/* App Announcement Badging */}
-                <div className="inline-flex items-center gap-2.5 px-4 py-2 bg-pink-100/60 dark:bg-pink-950/30 rounded-full text-pink-700 dark:text-pink-300 text-xs font-bold border border-pink-200/30 dark:border-pink-900/10 animate-fade-in shadow-xs">
-                  <span className="flex h-2.5 w-2.5 rounded-full bg-pink-500 animate-pulse"></span>
-                  <span className="font-mono uppercase tracking-wider">Coming Soon to Your Region</span>
-                  <span className="text-pink-400 font-mono">|</span>
-                  <span>Waitlist Priority Active</span>
+                <div className="flex justify-center">
+                  <div className="inline-flex items-center gap-2.5 px-4 py-2 bg-pink-100/60 dark:bg-pink-950/30 rounded-full text-pink-700 dark:text-pink-300 text-xs font-bold border border-pink-200/30 dark:border-pink-900/10 animate-fade-in shadow-xs">
+                    <span className="flex h-2.5 w-2.5 rounded-full bg-pink-500 animate-pulse"></span>
+                    <span className="font-mono uppercase tracking-wider">Coming Soon to Your Region</span>
+                    <span className="text-pink-400 font-mono">|</span>
+                    <span>Waitlist Priority Active</span>
+                  </div>
                 </div>
 
                 {/* Display Headline */}
@@ -902,11 +1165,19 @@ export default function App() {
                   transition={{ duration: 0.6, delay: 0.1, ease: [0.21, 0.45, 0.15, 1.0] }}
                   className="text-3xl sm:text-4xl md:text-4xl lg:text-5xl xl:text-6xl font-serif text-slate-900 dark:text-white font-black tracking-tight leading-[1.08] select-all"
                 >
-                  {headline}
+                  {headline === "Experience \"Beauty Brought To You!\"" ? (
+                    <>
+                      <span className="block text-center">Experience</span>
+                      <span className="block text-center">"Beauty Brought To You!"</span>
+                    </>
+                  ) : (
+                    headline
+                  )}
                 </motion.h1>
 
                 {/* Description Tagline */}
                 <motion.p 
+                  id="hero-tagline"
                   initial={{ opacity: 0, y: 15 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: 0.2, ease: [0.21, 0.45, 0.15, 1.0] }}
@@ -920,13 +1191,106 @@ export default function App() {
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.5, delay: 0.25 }}
-                  className="p-5 bg-slate-950/85 dark:bg-slate-950/95 border border-purple-500/30 rounded-3xl flex flex-col gap-3.5 max-w-sm sm:max-w-md shadow-2xl backdrop-blur-md relative overflow-hidden text-left"
+                  whileHover={{ y: -6, scale: 1.02 }}
+                  className="p-5 bg-slate-950/90 border border-purple-500/30 rounded-3xl flex flex-col gap-3.5 max-w-sm sm:max-w-md shadow-[0_0_25px_rgba(168,85,247,0.12)] hover:shadow-[0_0_45px_rgba(236,72,153,0.25)] hover:border-pink-500/40 backdrop-blur-md relative overflow-hidden text-left group/card transition-all duration-300"
                 >
+                  {/* Neon top accent line */}
+                  <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 opacity-90" />
+
+                  {/* Playful Floating mascot bubble */}
+                  <motion.div
+                    animate={{ 
+                      y: [0, -4, 0],
+                      rotate: [-1.5, 1.5, -1.5] 
+                    }}
+                    transition={{ 
+                      repeat: Infinity, 
+                      duration: 3, 
+                      ease: "easeInOut" 
+                    }}
+                    className="absolute -top-3 right-4 bg-gradient-to-r from-pink-500 to-purple-600 text-[9px] font-black tracking-wider text-white uppercase px-2.5 py-1 rounded-full shadow-lg border border-white/10 flex items-center gap-1 select-none z-20"
+                  >
+                    <span className="animate-bounce inline-block">🔥</span> Filling Fast!
+                    <div className="absolute -bottom-1 right-3.5 w-2 h-2 bg-purple-600 rotate-45 border-r border-b border-white/5" />
+                  </motion.div>
+
+                  {/* Absolute floating particles container */}
+                  <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-3xl">
+                    {/* Render standard neon particles */}
+                    <AnimatePresence>
+                      {particles.map((p) => (
+                        <motion.span
+                          key={p.id}
+                          initial={{ x: 0, y: 0, opacity: 0.9, scale: 0.2 }}
+                          animate={{
+                            y: -140 - Math.random() * 80,
+                            x: (Math.random() - 0.5) * 110,
+                            opacity: 0,
+                            scale: [1, 1.4, 0],
+                            rotate: Math.random() * 360,
+                          }}
+                          exit={{ opacity: 0 }}
+                          transition={{
+                            duration: 1.6 + Math.random() * 1.4,
+                            ease: "easeOut",
+                            delay: p.delay,
+                          }}
+                          className="absolute pointer-events-none rounded-full"
+                          style={{
+                            left: `${p.left}%`,
+                            top: `${p.top}%`,
+                            width: p.size,
+                            height: p.size,
+                            backgroundColor: p.color,
+                            boxShadow: `0 0 8px ${p.color}, 0 0 16px ${p.color}`,
+                            zIndex: 10,
+                          }}
+                        />
+                      ))}
+                    </AnimatePresence>
+
+                    {/* Render custom fun floating emojis */}
+                    <AnimatePresence>
+                      {floatingEmojis.map((emoji) => (
+                        <motion.span
+                          key={emoji.id}
+                          initial={{ 
+                            x: 0, 
+                            y: 30, 
+                            opacity: 1, 
+                            scale: 0.1, 
+                            rotate: 0 
+                          }}
+                          animate={{
+                            y: -150 - Math.random() * 80,
+                            x: emoji.velocityX * 1.8,
+                            opacity: [1, 1, 0.8, 0],
+                            scale: [0.1, emoji.scale, emoji.scale, 0],
+                            rotate: emoji.rotation * 2.5,
+                          }}
+                          exit={{ opacity: 0 }}
+                          transition={{
+                            duration: 1.8 + Math.random() * 1.2,
+                            ease: "easeOut",
+                            delay: emoji.delay,
+                          }}
+                          className="absolute pointer-events-none select-none text-xl z-20"
+                          style={{
+                            left: `${emoji.left}%`,
+                            top: `${emoji.top}%`,
+                          }}
+                        >
+                          {emoji.text}
+                        </motion.span>
+                      ))}
+                    </AnimatePresence>
+                  </div>
+
                   {/* Subtle Background Glow behind the chart */}
                   <div className="absolute right-0 bottom-0 w-32 h-20 bg-purple-500/10 dark:bg-purple-500/5 rounded-full blur-2xl pointer-events-none" />
 
                   {/* Row 1: Badges Row */}
-                  <div className="flex items-center justify-between gap-2 border-b border-slate-800/50 pb-2.5">
+                  <div className="flex items-center justify-between gap-2 border-b border-slate-850 pb-2.5 relative z-10">
                     <div className="flex items-center gap-2">
                       <div className="relative flex h-2.5 w-2.5">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -936,36 +1300,84 @@ export default function App() {
                     </div>
 
                     {/* Growth Velocity Indicator Pill */}
-                    <div className="flex items-center gap-1.5 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20 shadow-sm">
+                    <div className="flex items-center gap-1.5 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20 shadow-sm hover:scale-[1.05] transition-transform duration-250 cursor-default">
                       <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
-                      <span className="text-[10px] font-mono font-black text-emerald-400 tracking-wide">+5 signups today</span>
+                      <span className="text-[10px] font-mono font-black text-emerald-400 tracking-wide">+{todaySignupsCount} signups today</span>
                     </div>
                   </div>
 
                   {/* Row 2: Statistics & Chart block */}
-                  <div className="flex items-center justify-between gap-4 py-0.5">
+                  <div className="flex items-center justify-between gap-4 py-0.5 relative z-10">
                     <div className="flex items-center gap-2.5 font-sans">
                       <div className="flex flex-col">
-                        <div className="flex items-baseline gap-1.5">
-                          <AnimatePresence mode="popLayout">
-                            <motion.span
-                              key={waitlistCount}
-                              initial={{ opacity: 0, y: -10, scale: 0.8 }}
-                              animate={{ opacity: 1, y: 0, scale: 1 }}
-                              exit={{ opacity: 0, y: 10, scale: 0.8 }}
-                              transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                              className="text-3xl font-black font-mono text-white tracking-tight inline-block"
-                            >
-                              {waitlistCount}
-                            </motion.span>
-                          </AnimatePresence>
+                        <div 
+                          onClick={() => {
+                            triggerParticles();
+                            safeConfetti({
+                              particleCount: 50,
+                              spread: 60,
+                              origin: { y: 0.65 },
+                              colors: ['#ec4899', '#a855f7', '#3b82f6'],
+                              zIndex: 10000
+                            });
+                          }}
+                          className="flex items-baseline gap-1 relative group cursor-pointer"
+                          title="Click to celebrate!"
+                        >
+                          {/* Individual Retro-Neon Digit Cards */}
+                          <div className="flex items-center gap-1 sm:gap-1.5 select-none h-12">
+                            {String(waitlistCount).split('').map((char, index) => (
+                              <div 
+                                key={`${index}-${char}`} 
+                                className="relative h-12 w-8 sm:w-9 bg-slate-900/90 border border-slate-800 rounded-xl flex items-center justify-center overflow-visible shadow-[inset_0_2px_4px_rgba(0,0,0,0.8),0_1px_2px_rgba(255,255,255,0.05)] border-t-purple-500/20"
+                              >
+                                <AnimatePresence mode="popLayout">
+                                  <motion.span
+                                    key={char}
+                                    initial={{ opacity: 0, y: 18, scale: 0.3, rotateX: -90 }}
+                                    animate={{ opacity: 1, y: 0, scale: 1, rotateX: 0 }}
+                                    exit={{ opacity: 0, y: -18, scale: 0.3, rotateX: 90 }}
+                                    transition={{
+                                      type: "spring",
+                                      stiffness: 450,
+                                      damping: 14,
+                                      delay: index * 0.05
+                                    }}
+                                    whileHover={{ 
+                                      scale: 1.25, 
+                                      rotate: [0, -8, 8, 0],
+                                      y: -4
+                                    }}
+                                    style={{ originY: 0.5, transformPerspective: 400 }}
+                                    className="text-2xl sm:text-3xl font-black font-mono text-transparent bg-clip-text bg-gradient-to-b from-white via-slate-100 to-pink-300 tracking-tighter inline-block drop-shadow-[0_2px_5px_rgba(236,72,153,0.4)]"
+                                  >
+                                    {char}
+                                  </motion.span>
+                                </AnimatePresence>
+                              </div>
+                            ))}
+                          </div>
+                          
+                          {/* Sparkle micro-interaction indicator */}
+                          <motion.span 
+                            animate={{ scale: [1, 1.2, 1], rotate: [0, 15, -15, 0] }}
+                            transition={{ repeat: Infinity, duration: 1.8, ease: "easeInOut" }}
+                            className="text-sm text-pink-400 opacity-80 group-hover:opacity-100 transition-opacity ml-2 inline-block self-center drop-shadow-[0_0_5px_rgba(236,72,153,0.5)]"
+                          >
+                            ✨
+                          </motion.span>
                         </div>
-                        <span className="text-xs font-semibold text-slate-350">registered on waitlist</span>
+                        <span className="text-[10px] sm:text-xs font-semibold text-slate-400 flex items-center gap-1 mt-1">
+                          registered on waitlist
+                          <span className="text-[9px] text-slate-500 font-normal italic opacity-0 group-hover/card:opacity-100 transition-opacity duration-300">
+                            (click to celebrate!)
+                          </span>
+                        </span>
                       </div>
                     </div>
 
-                    {/* Subtle Upward-Trending Chart Animation */}
-                    <div className="w-24 h-10 flex items-center justify-center relative bg-slate-900/40 px-2 py-1 rounded-xl border border-slate-800/30">
+                    {/* Subtle Upward-Trending Chart Animation with active wave undulating loop */}
+                    <div className="w-24 h-12 flex items-center justify-center relative bg-slate-900/60 px-2.5 py-1 rounded-xl border border-slate-800/60 shadow-inner group/chart overflow-hidden">
                       <svg viewBox="0 0 100 40" className="w-full h-full overflow-visible">
                         <defs>
                           <linearGradient id="sparkline-gradient" x1="0" y1="1" x2="1" y2="0">
@@ -974,38 +1386,65 @@ export default function App() {
                             <stop offset="100%" stopColor="#3b82f6" />
                           </linearGradient>
                           <linearGradient id="sparkline-fill" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#a855f7" stopOpacity="0.2" />
+                            <stop offset="0%" stopColor="#a855f7" stopOpacity="0.25" />
                             <stop offset="100%" stopColor="#a855f7" stopOpacity="0" />
                           </linearGradient>
                         </defs>
-                        {/* Shaded Area Below Line */}
+                        
+                        {/* Shaded Area Below Line (Undulating Loop) */}
                         <motion.path
-                          d="M 5,35 Q 25,31 42,24 T 75,11 T 95,4 L 95,40 L 5,40 Z"
+                          animate={{ 
+                            d: [
+                              "M 5,35 Q 25,31 42,24 T 75,11 T 95,4 L 95,40 L 5,40 Z",
+                              "M 5,35 Q 20,28 42,26 T 70,8 T 95,4 L 95,40 L 5,40 Z",
+                              "M 5,35 Q 25,31 42,24 T 75,11 T 95,4 L 95,40 L 5,40 Z"
+                            ] 
+                          }}
+                          transition={{ 
+                            repeat: Infinity, 
+                            duration: 4, 
+                            ease: "easeInOut" 
+                          }}
                           fill="url(#sparkline-fill)"
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          transition={{ duration: 1 }}
                         />
-                        {/* Animated Line */}
+                        
+                        {/* Animated Line (Undulating Wave) */}
                         <motion.path
-                          d="M 5,35 Q 25,31 42,24 T 75,11 T 95,4"
+                          animate={{ 
+                            d: [
+                              "M 5,35 Q 25,31 42,24 T 75,11 T 95,4",
+                              "M 5,35 Q 20,28 42,26 T 70,8 T 95,4",
+                              "M 5,35 Q 25,31 42,24 T 75,11 T 95,4"
+                            ] 
+                          }}
+                          transition={{ 
+                            repeat: Infinity, 
+                            duration: 4, 
+                            ease: "easeInOut" 
+                          }}
                           fill="none"
                           stroke="url(#sparkline-gradient)"
-                          strokeWidth="3"
+                          strokeWidth="3.5"
                           strokeLinecap="round"
-                          initial={{ pathLength: 0 }}
-                          animate={{ pathLength: 1 }}
-                          transition={{ duration: 1.8, ease: "easeOut" }}
                         />
+                        
                         {/* Pulsing Target Node */}
                         <motion.circle
                           cx="95"
                           cy="4"
-                          r="3"
-                          fill="#3b82f6"
-                          initial={{ scale: 0.5, opacity: 0 }}
-                          animate={{ scale: [0.8, 1.4, 0.8], opacity: [0.6, 1, 0.6] }}
-                          transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
+                          r="4.5"
+                          fill="#ec4899"
+                          animate={{ 
+                            scale: [0.8, 1.6, 0.8], 
+                            opacity: [0.6, 1, 0.6],
+                            fill: ["#ec4899", "#3b82f6", "#ec4899"] 
+                          }}
+                          transition={{ 
+                            repeat: Infinity, 
+                            duration: 1.5, 
+                            ease: "easeInOut" 
+                          }}
+                          style={{ filter: "drop-shadow(0 0 4px #ec4899)" }}
                         />
                       </svg>
                     </div>
@@ -1034,16 +1473,20 @@ export default function App() {
                     className="inline-flex items-center justify-center gap-2.5 px-8 py-4 bg-gradient-to-r from-pink-500 via-purple-600 to-blue-650 text-white font-extrabold rounded-2xl text-base transition-all duration-300 shadow-[0_4px_25px_rgba(219,39,119,0.3)] hover:shadow-[0_12px_35px_rgba(219,39,119,0.55)] border border-white/20 hover:border-white/40 group cursor-pointer hover:scale-[1.04] active:scale-[0.96] tracking-wide"
                     id="hero-primary-cta"
                   >
-                    <span>Book Your Appointment</span>
+                    <span>Join our wait list</span>
                     <ArrowRight className="w-5 h-5 group-hover:translate-x-1.5 transition-transform text-white/90" />
                   </button>
                   
                   <button
-                    onClick={() => scrollToSection('services-catalog')}
-                    className="px-8 py-4 bg-white/90 dark:bg-slate-900/90 hover:bg-white dark:hover:bg-slate-800 text-slate-800 dark:text-slate-100 font-extrabold rounded-2xl text-base border-2 border-slate-800/85 dark:border-slate-400/80 hover:border-pink-500 dark:hover:border-pink-400 transition-all duration-300 cursor-pointer shadow-md hover:shadow-lg hover:scale-[1.04] active:scale-[0.96]"
+                    onClick={() => {
+                      safeScrollTo({ top: 0, behavior: 'smooth' });
+                      setMobileMenuOpen(true);
+                    }}
+                    className="inline-flex items-center justify-center gap-2.5 px-8 py-4 bg-white/90 dark:bg-slate-900/90 hover:bg-white dark:hover:bg-slate-800 text-slate-800 dark:text-slate-100 font-extrabold rounded-2xl text-base border-2 border-slate-800/85 dark:border-slate-400/80 hover:border-pink-500 dark:hover:border-pink-400 transition-all duration-300 cursor-pointer shadow-md hover:shadow-lg hover:scale-[1.04] active:scale-[0.96]"
                     id="hero-secondary-cta"
                   >
-                    Explore Services
+                    <Menu className="w-5 h-5" />
+                    <span>Menu</span>
                   </button>
                 </motion.div>
 
@@ -1079,10 +1522,33 @@ export default function App() {
                 <div 
                   id="hero-image-lightbox-trigger"
                   onClick={() => setIsLightboxOpen(true)}
-                  className="relative rounded-[36px] overflow-hidden shadow-2xl border-4 border-white/90 dark:border-[#0e1423]/90 aspect-[4/5] w-full max-w-md group cursor-zoom-in transition-all duration-300 hover:scale-[1.01]"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setIsLightboxOpen(true);
+                    }
+                  }}
+                  tabIndex={0}
+                  role="button"
+                  aria-label="Enlarge beauty and wellness styling photo"
+                  className="relative rounded-[48px] overflow-hidden shadow-2xl border-4 border-white/90 dark:border-[#0e1423]/90 aspect-[4/5] w-full max-w-md group cursor-zoom-in transition-all duration-305 hover:scale-[1.01]"
                 >
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-950/20 to-transparent z-10" />
                   
+                  {/* Premium Gently Pulsing Floating Zoom Badge Indicator */}
+                  <div 
+                    className="absolute top-4 left-4 z-20 flex items-center justify-center pointer-events-none" 
+                    id="hero-lightbox-pulse-badge"
+                  >
+                    {/* Growing/pinging outer ring effect */}
+                    <span className="absolute inline-flex h-9 w-9 rounded-full bg-pink-500/45 animate-[ping_2.2s_infinite]" />
+                    {/* Floating pill badge */}
+                    <div className="relative flex items-center gap-1.5 bg-slate-950/90 backdrop-blur-md border border-pink-500/60 hover:border-pink-500 text-white text-[9px] font-mono font-black tracking-widest uppercase py-1.5 px-3 rounded-full shadow-[0_4px_16px_rgba(236,72,153,0.4)] transition-all duration-300 group-hover:scale-105 group-hover:shadow-[0_4px_22px_rgba(236,72,153,0.65)]">
+                      <ZoomIn className="w-3 h-3 text-pink-400 group-hover:text-pink-300 transition-colors animate-[pulse_1.5s_infinite]" />
+                      <span className="leading-none select-none">Inspect</span>
+                    </div>
+                  </div>
+
                   {/* Click to Enlarge Overlay Indicator */}
                   <div className="absolute top-4 right-4 bg-slate-955/80 backdrop-blur-md text-white text-[10px] font-mono py-1 px-2.5 rounded-full z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center gap-1.5 border border-white/10 shadow-lg">
                     <ZoomIn className="w-3 h-3 text-pink-300 animate-pulse" />
@@ -1140,46 +1606,86 @@ export default function App() {
             <div className="mt-28 pt-12 border-t border-slate-200/50 dark:border-slate-900 max-w-4xl mx-auto text-left gap-8 grid grid-cols-1 md:grid-cols-2 items-center" id="about-us-block">
               <div className="space-y-4">
                 <span className="text-xs font-extrabold font-mono text-purple-700 dark:text-purple-300 uppercase tracking-widest pl-1">
-                  Our Identity
+                  Our Mission
                 </span>
                 <h2 className="text-2xl md:text-3xl font-serif text-slate-950 dark:text-white font-extrabold tracking-tight">
                   Who is Beauty Brought to You?
                 </h2>
                 <p className="text-slate-800 dark:text-slate-100 text-sm md:text-base leading-relaxed font-semibold">
-                  Beauty Brought to You (BBTY) is more than just a convenience. We are a dedicated <strong>mobile beauty and wellness-care platform</strong> delivering professional grooming and restorative styling directly to clients in their comfort zones. 
+                  We are a <strong>mobile beauty and wellness platform</strong> that delivers professional hair, nail, and styling services directly to your home or care facility. 
                 </p>
                 <p className="text-slate-800 dark:text-slate-100 text-sm md:text-base leading-relaxed font-semibold">
-                  We serve seniors, diabetics, people with lifelong physical disabilities, individuals experiencing severe mobility setbacks, memory care residents, and general busy households who deserve respectful pampering right at home.
+                  We serve seniors, people with disabilities, memory care residents, and busy families who deserve convenient, respectful care.
                 </p>
               </div>
 
               {/* Graphic stats boxes */}
               <div className="bg-gradient-to-br from-pink-50 to-amber-50/45 dark:from-pink-950/20 dark:to-amber-950/10 rounded-3xl p-6 border border-pink-100/50 dark:border-pink-900/10 space-y-4 shadow-sm">
-                <h3 className="font-serif font-semibold text-slate-950 dark:text-white text-base">Key Pillars of Dignified Care</h3>
+                <h3 className="font-serif font-semibold text-slate-950 dark:text-white text-base">Key Pillars of Care</h3>
                 
                 <div className="space-y-3 font-sans text-xs">
                   <div className="flex gap-2.5 items-start">
                     <span className="text-lg">♿</span>
                     <div className="text-slate-600 dark:text-slate-300">
-                      <strong className="text-slate-800 dark:text-slate-200">Accessibility First:</strong> Traditional salons often contain entries with steps, tight wash bowls, and high chairs. BBTY brings the entire beauty lounge into the safety of your living couch.
+                      <strong className="text-slate-800 dark:text-slate-200">Accessible:</strong> We solve the problem of inaccessible salons by bringing the service directly to your living room.
                     </div>
                   </div>
                   <div className="flex gap-2.5 items-start">
                     <span className="text-lg">🌿</span>
                     <div className="text-slate-600 dark:text-slate-300">
-                      <strong className="text-slate-800 dark:text-slate-200">Wellness-Aware Care:</strong> Our partners are vetted independent professionals trained to operate respectfully with fragile hand joints, dementia triggers, and customized spacing.
+                      <strong className="text-slate-800 dark:text-slate-200">Specially Trained:</strong> Our independent professionals are trained to work gently with seniors and individuals with special needs.
                     </div>
                   </div>
                   <div className="flex gap-2.5 items-start">
                     <span className="text-lg">✨</span>
                     <div className="text-slate-600 dark:text-slate-300">
-                      <strong className="text-slate-800 dark:text-slate-200">Convenience and Joy:</strong> From quick fixes like repairing a painful broken acrylic nail on a lunch break, to regular monthly shampoo settings for seniors, we preserve quality of life.
+                      <strong className="text-slate-800 dark:text-slate-200">Convenient:</strong> From quick fixes like repairing a nail to regular haircuts, we bring the salon to you.
                     </div>
                   </div>
                 </div>
               </div>
             </div>
 
+          </div>
+        </section>
+
+        {/* Core Services Overview Grid */}
+        <section className="py-16 bg-white dark:bg-slate-950 border-b border-slate-100 dark:border-slate-900">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {/* Hair Care */}
+              <div className="flex flex-col items-center text-center space-y-4 p-8 rounded-3xl bg-slate-50 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-800 transition-all hover:shadow-lg">
+                <div className="w-14 h-14 rounded-2xl bg-pink-100 dark:bg-pink-900/40 flex items-center justify-center text-pink-600 dark:text-pink-400 mb-2">
+                  <Scissors className="w-7 h-7" />
+                </div>
+                <h3 className="font-serif font-bold text-xl text-slate-900 dark:text-white tracking-tight">Hair Care</h3>
+                <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                  Professional haircuts, blowouts, and gentle styling brought right to your living room or facility chair.
+                </p>
+              </div>
+              
+              {/* Nail Services */}
+              <div className="flex flex-col items-center text-center space-y-4 p-8 rounded-3xl bg-slate-50 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-800 transition-all hover:shadow-lg">
+                <div className="w-14 h-14 rounded-2xl bg-purple-100 dark:bg-purple-900/40 flex items-center justify-center text-purple-600 dark:text-purple-400 mb-2">
+                  <Sparkles className="w-7 h-7" />
+                </div>
+                <h3 className="font-serif font-bold text-xl text-slate-900 dark:text-white tracking-tight">Nail Services</h3>
+                <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                  Waterless, diabetic-friendly manicures and pedicures with an emphasis on gentle hand and foot care.
+                </p>
+              </div>
+
+              {/* Wellness & Grooming */}
+              <div className="flex flex-col items-center text-center space-y-4 p-8 rounded-3xl bg-slate-50 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-800 transition-all hover:shadow-lg">
+                <div className="w-14 h-14 rounded-2xl bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center text-blue-600 dark:text-blue-400 mb-2">
+                  <Heart className="w-7 h-7" />
+                </div>
+                <h3 className="font-serif font-bold text-xl text-slate-900 dark:text-white tracking-tight">Wellness & Grooming</h3>
+                <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                  Compassionate skincare, esthetics, and dignity-focused grooming ensuring confidence and well-being.
+                </p>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -1227,35 +1733,43 @@ export default function App() {
         {/* 4. Careers for New Professionals & Client Testimonials Slider */}
         <CareersAndTestimonials onJoinTeam={() => scrollToSection('waitlist-form-block')} />
 
-        {/* 4. Strategic brand copywriter tool (Interactive selection panel) */}
-        <section className="py-20 bg-slate-50 dark:bg-slate-900/30 border-y border-slate-105 dark:border-slate-850 transition-colors">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center max-w-2xl mx-auto mb-10">
-              <span className="text-xs font-semibold text-pink-600 dark:text-pink-300 uppercase tracking-widest font-mono bg-pink-50 dark:bg-pink-950/30 px-3 py-1 rounded-full">
-                Interactive Planners
-              </span>
-              <h2 className="text-3xl md:text-5xl font-serif text-slate-950 dark:text-white font-medium tracking-tight mt-3">
-                Live Brand Identity Tool
-              </h2>
-              <p className="text-slate-600 dark:text-slate-300 mt-4 text-sm md:text-base leading-relaxed">
-                As a designated brand developer, we included a mechanical toolkit. Select a headline and tagline below to instantly synchronize, adjust, and evaluate their aesthetic placement inside our main hero section!
-              </p>
-            </div>
+        {/* 5. Dedicated Graduate & Aspirant Onboarding Program Section */}
+        <NewGradsSection />
 
-            <BrandKit 
-              onSelectHeadline={setHeadline}
-              onSelectTagline={setTagline}
-              currentHeadline={headline}
-              currentTagline={tagline}
-            />
-          </div>
-        </section>
+        {/* 4. Strategic brand copywriter tool (Interactive selection panel) - ADMIN ONLY */}
+        {isAdminAuthenticated && (
+          <section className="py-20 bg-slate-50 dark:bg-slate-900/30 border-y border-slate-105 dark:border-slate-850 transition-colors">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="text-center max-w-2xl mx-auto mb-10">
+                <span className="text-xs font-semibold text-pink-600 dark:text-pink-300 uppercase tracking-widest font-mono bg-pink-50 dark:bg-pink-950/30 px-3 py-1 rounded-full">
+                  Interactive Planners
+                </span>
+                <h2 className="text-3xl md:text-5xl font-serif text-slate-950 dark:text-white font-medium tracking-tight mt-3">
+                  Live Brand Identity Tool
+                </h2>
+                <p className="text-slate-600 dark:text-slate-300 mt-4 text-sm md:text-base leading-relaxed">
+                  As a designated brand developer, we included a mechanical toolkit. Select a headline and tagline below to instantly synchronize, adjust, and evaluate their aesthetic placement inside our main hero section!
+                </p>
+              </div>
+
+              <BrandKit 
+                onSelectHeadline={setHeadline}
+                onSelectTagline={setTagline}
+                currentHeadline={headline}
+                currentTagline={tagline}
+              />
+            </div>
+          </section>
+        )}
 
         {/* 5. Safe Interactive Waitlist signup + live database simulator */}
-        <WaitlistForm />
+        <WaitlistForm 
+          isAdminAuthenticated={isAdminAuthenticated} 
+          setIsAdminAuthenticated={setIsAdminAuthenticated} 
+        />
 
         {/* 7. Fully Expandable accordion FAQ system with real-time text-search query */}
-        <FaqSection />
+        <FaqSection onOpenSecurity={() => setSecurityModalOpen(true)} />
 
         {/* Final call to action banners */}
         <section className="bg-gradient-to-tr from-pink-500 via-purple-600 to-cyan-500 text-white py-20 relative overflow-hidden">
@@ -1263,13 +1777,13 @@ export default function App() {
           
           <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center space-y-6 relative z-10">
             <span className="text-xs font-mono uppercase font-bold tracking-widest bg-white/20 px-3 py-1 rounded-full text-white border border-white/10">
-              Dignified Self-Care
+              Personal Care
             </span>
             <h2 className="text-3xl md:text-5.5xl font-serif font-black tracking-tight leading-tight">
-              Self-grooming and respect are not luxuries. They are fundamental rights of living.
+              Self-grooming and respect are fundamental rights.
             </h2>
             <p className="text-pink-100 text-base md:text-lg max-w-2xl mx-auto leading-relaxed font-sans">
-              Help us deliver comfort, confidence, beauty, and emotional companionship directly to seniors, disabled populations, and hardworking household members inside their safe spaces. Secure your waitlist slot today in just 60 seconds.
+              Help us bring comfort, confidence, and beauty directly to seniors, people with disabilities, and busy families in their own homes. Join our waitlist today.
             </p>
 
             <div className="pt-6 flex flex-wrap justify-center gap-4">
@@ -1293,7 +1807,7 @@ export default function App() {
       ) : (
         <PrivacyPolicy onBack={() => {
           setCurrentPage('home');
-          window.scrollTo({ top: 0, behavior: 'smooth' });
+          safeScrollTo({ top: 0, behavior: 'smooth' });
         }} />
       )}
 
@@ -1342,13 +1856,13 @@ export default function App() {
                 <li><button onClick={() => scrollToSection('faq-section')} className="hover:text-white transition-colors cursor-pointer text-left focus:outline-none">Sanitization & Safety FAQs</button></li>
                 <li><button onClick={() => scrollToSection('brand-kit-section')} className="hover:text-white transition-colors cursor-pointer text-left focus:outline-none">View Asset Brand Kit</button></li>
                 <li><button onClick={() => setAdvocateModalOpen(true)} className="text-pink-400 hover:text-pink-300 font-bold transition-colors cursor-pointer text-left focus:outline-none">📢 Become a Local Advocate</button></li>
-                <li><button onClick={() => window.print()} className="text-rose-300 hover:text-white font-medium transition-colors cursor-pointer text-left focus:outline-none">🖨️ Print Offline Brochure</button></li>
+                <li><button onClick={() => { try { window.print(); } catch (e) { console.warn("Printing is not supported in this iframe sandbox.", e); } }} className="text-rose-300 hover:text-white font-bold transition-colors cursor-pointer text-left focus:outline-none flex items-center gap-1.5" id="download-printable-brochure-footer-btn">🖨️ Download Printable Brochure</button></li>
               </ul>
             </div>
 
             {/* Contact Newsletter info */}
             <div className="md:col-span-4 space-y-3">
-              <h4 className="text-xs font-bold text-white uppercase tracking-wider font-mono">Vetting Advisory Status</h4>
+              <h4 className="text-xs font-bold text-white uppercase tracking-wider font-mono">Advisory & Contact</h4>
               <p className="text-slate-500 text-xs leading-relaxed">
                 BBTY continues to recruit licensed independent contractors, state cosmetology advisers, and geriatric accessibility experts. Feel free to contact our administrative desk for advisory, sponsorship, or pilot partner relations.
               </p>
@@ -1368,6 +1882,41 @@ export default function App() {
                   📢 Become a Local Advocate
                 </button>
               </div>
+
+              {/* Verified Secure Badge near Footer */}
+              <div className="pt-4 flex flex-wrap gap-3 items-center">
+                <button 
+                  onClick={() => setSecurityModalOpen(true)}
+                  className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 rounded-lg border border-emerald-500/20 hover:border-emerald-500/40 transition-all text-xs font-semibold cursor-pointer"
+                >
+                  <ShieldCheck className="w-4 h-4" />
+                  Verified Secure Profile
+                </button>
+              </div>
+
+              {/* Quick Access QR Code */}
+              <div className="pt-6 border-t border-slate-900/60 mt-6">
+                <div className="bg-slate-900/40 rounded-2xl p-4 border border-slate-800/60 flex items-center gap-4 hover:border-slate-700/80 transition-all group">
+                  <div className="bg-white p-2 rounded-xl shrink-0 shadow-lg relative overflow-hidden group-hover:scale-105 transition-transform duration-300">
+                    <img 
+                      src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(getShareUrl())}&color=0f172a&bgcolor=ffffff`}
+                      alt="Quick Access QR Code"
+                      className="w-20 h-20 relative z-10"
+                      referrerPolicy="no-referrer"
+                      loading="lazy"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <h5 className="text-xs font-bold text-white uppercase tracking-wider font-mono flex items-center gap-1.5">
+                      <QrCode className="w-3.5 h-3.5 text-pink-400 animate-pulse" />
+                      Quick Access QR
+                    </h5>
+                    <p className="text-[11px] text-slate-500 leading-relaxed max-w-[200px]">
+                      Scan with your smartphone camera to instantly open and share your exact custom-configured workspace on mobile.
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
 
           </div>
@@ -1375,7 +1924,7 @@ export default function App() {
           {/* Legal Fine Print - Safety disclaimer */}
           <div className="pt-8 border-t border-slate-900 text-[10px] text-slate-600 space-y-2 leading-relaxed">
             <p>
-              <strong>IMPORTANT EXPLICIT DISCLAIMER:</strong> Beauty Brought to You (BBTY) is an informational mobile beauty applet startup. No medical treatments, chemical cures for chronic podiatry issues, dermatology therapeutic surgical intervention, or home physical-needs assistance are executed of any kind. Stylists and manicurists operating under independent subscription paths or employee listings work strictly within standard licensing laws regarding grooming, hair cuts, basic cosmetic care, and general physical comfort-massages of safe extremities.
+              <strong>IMPORTANT DISCLAIMER:</strong> Beauty Brought to You (BBTY) is an informational mobile beauty platform. We do not provide medical treatments, clinical therapy, or nursing care. Our independent stylists work within their professional licensing guidelines regarding cosmetic services, basic grooming, and aesthetic care.
             </p>
             <div className="flex flex-wrap items-center gap-3.5 text-slate-500 font-mono mt-2">
               <span>© {new Date().getFullYear()} Beauty Brought To You, LLC. All rights or trademarks reserved.</span>
@@ -1383,14 +1932,12 @@ export default function App() {
               <button 
                 onClick={() => {
                   setCurrentPage('privacy');
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                  safeScrollTo({ top: 0, behavior: 'smooth' });
                 }}
                 className="hover:text-pink-400 font-bold transition-colors cursor-pointer text-left focus:outline-none flex items-center gap-1"
               >
                 🔒 Security & Privacy Policy
               </button>
-              <span className="text-slate-800">•</span>
-              <span>Custom brand positioning prepared securely inside the AI Studio Launch ecosystem.</span>
             </div>
           </div>
 
@@ -1429,10 +1976,10 @@ export default function App() {
         {/* Introduction Panel */}
         <div className="space-y-3 mb-6 bg-stone-50 p-5 rounded-2xl border border-stone-200">
           <h2 className="text-base font-bold text-slate-900 tracking-tight flex items-center gap-2">
-            🏡 About Our Dedicated Social Mission
+            🏡 About Us
           </h2>
           <p className="text-xs text-stone-700 leading-relaxed">
-            Beauty Brought to You is a dedicated community-focused mobile platform delivering licensed beauty support, gentle skincare, and grooming confidence directly inside the residency spaces of clients with accessibility challenges. We serve seniors, individuals with chronic disabilities, and those who struggle to access traditional walk-in salons. Guided by physical safety, geriatric care pacing, and profound compassion, we believe self-grooming is a fundamental human right.
+            Beauty Brought to You is a mobile platform delivering licensed beauty support, gentle skincare, and grooming directly to clients at home. We serve seniors, individuals with disabilities, and anyone seeking convenient salon services within their comfort zone. Guided by safety and compassion, we believe self-grooming is a fundamental right.
           </p>
         </div>
 
@@ -1503,7 +2050,7 @@ export default function App() {
 
         {/* Clear Medical Exclusions Disclaimer (Crucial Offline Disclaimer) */}
         <div className="p-4 bg-amber-50/40 rounded-xl border border-amber-200 text-[10px] text-amber-900 leading-normal mb-8">
-          <strong>CRITICAL SAFETY & MEDICAL DISCLAIMER:</strong> Beauty Brought to You (BBTY) is an informational mobile beauty applet startup and subscription coordination platform. We do NOT provide medical treatments, physical-needs nursing, chiropractic manipulation, dermatology medical therapy, or clinical podiatric surgery. Stylists operate purely under local state professional licensing guidelines regarding cosmetic haircuts, grooming comfort, basic aesthetic nail maintenance, and skin moisturizing.
+          <strong>CRITICAL SAFETY & MEDICAL DISCLAIMER:</strong> Beauty Brought to You (BBTY) is an informational mobile platform. We do not provide medical treatments, physical therapy, or medical dermatology. Stylists operate within their local licensing guidelines regarding cosmetic services and basic grooming.
         </div>
 
         {/* Footer of Flyer */}
@@ -1523,6 +2070,7 @@ export default function App() {
 
       <ReferFriendModal isOpen={referModalOpen} onClose={() => setReferModalOpen(false)} />
       <BecomeAdvocateModal isOpen={advocateModalOpen} onClose={() => setAdvocateModalOpen(false)} />
+      <SecurityModal isOpen={securityModalOpen} onClose={() => setSecurityModalOpen(false)} />
 
       {/* Smooth Premium Back to Top Button */}
       <AnimatePresence>
@@ -1532,7 +2080,7 @@ export default function App() {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.8, y: 30 }}
             transition={{ type: "spring", stiffness: 300, damping: 25 }}
-            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            onClick={() => safeScrollTo({ top: 0, behavior: 'smooth' })}
             className="fixed bottom-8 right-8 z-[45] flex items-center gap-2 px-4 py-3 rounded-full bg-gradient-to-r from-pink-500 via-purple-600 to-blue-600 hover:from-pink-600 hover:via-purple-700 hover:to-blue-700 text-white font-extrabold text-xs uppercase tracking-widest shadow-[0_8px_30px_rgba(219,39,119,0.35)] hover:shadow-[0_15px_40px_rgba(219,39,119,0.55)] border border-white/20 hover:border-white/40 cursor-pointer transition-all duration-300 hover:scale-110 active:scale-95 group"
             id="back-to-top-btn"
             title="Scroll back to top of page"

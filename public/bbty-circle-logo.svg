@@ -1,0 +1,196 @@
+<svg viewBox="0 0 1000 750" width="1000" height="750" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Premium color gradients reflecting the official brand identity -->
+    <linearGradient id="road-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#bf5af2" /> <!-- Rich Electric Purple -->
+      <stop offset="60%" stop-color="#2f80ed" /> <!-- Vibrant Royal Blue -->
+      <stop offset="100%" stop-color="#00f2fe" /> <!-- Neon Turquoise Cyan -->
+    </linearGradient>
+
+    <linearGradient id="scissor-grad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#af40ff" />
+      <stop offset="40%" stop-color="#5c5cff" />
+      <stop offset="100%" stop-color="#00f0ff" />
+    </linearGradient>
+
+    <linearGradient id="house-grad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#8b5cf6" /> <!-- Violet/Purple base -->
+      <stop offset="50%" stop-color="#3b82f6" /> <!-- Blue body -->
+      <stop offset="100%" stop-color="#06b6d4" /> <!-- Cyan highlight -->
+    </linearGradient>
+
+    <!-- Detailed diagonal gradient for BBTY letters to achieve a rich metallic look -->
+    <linearGradient id="bbty-text-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ec4899" /> <!-- Deep Pink Magenta -->
+      <stop offset="25%" stop-color="#d946ef" /> <!-- Fuchsia -->
+      <stop offset="50%" stop-color="#8b5cf6" /> <!-- Violet Purple -->
+      <stop offset="75%" stop-color="#3b82f6" /> <!-- Sky Blue -->
+      <stop offset="100%" stop-color="#06b6d4" /> <!-- Aqua Cyan -->
+    </linearGradient>
+
+    <!-- Drop Shadows and Glow and Bevels -->
+    <filter id="soft-glow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#8b5cf6" flood-opacity="0.22" />
+    </filter>
+    
+    <filter id="text-shadow" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000000" flood-opacity="0.15" />
+    </filter>
+  </defs>
+
+  <!-- 1. The Curved Road Arch / Highway -->
+  <g filter="url(#soft-glow)">
+    <!-- Base smooth road line -->
+    <path d="M 120,340 Q 500,220 880,320" stroke="url(#road-grad)" stroke-width="32" stroke-linecap="round" fill="none" />
+    <!-- White dashed lane division line -->
+    <path d="M 140,338 Q 500,220 860,318" stroke="#ffffff" stroke-width="3.5" stroke-dasharray="18,14" fill="none" />
+  </g>
+
+  <!-- 2. Scissors Mascot Element (Left hand placement) -->
+  <g class="scissors-group" filter="url(#soft-glow)">
+    <!-- Thumb Finger Rings (Handles) -->
+    <circle cx="310" cy="225" r="33" stroke="url(#scissor-grad)" stroke-width="7.5" fill="none" />
+    <circle cx="435" cy="225" r="33" stroke="url(#scissor-grad)" stroke-width="7.5" fill="none" />
+
+    <!-- 12-Point Starburst Compass motif inside Left Ring -->
+    <g transform="translate(310, 225)">
+      <circle cx="0" cy="0" r="23" stroke="#ffffff" stroke-opacity="0.3" stroke-width="1" fill="none" />
+      <circle cx="0" cy="0" r="6" fill="#3b82f6" />
+      <!-- Star rays -->
+      <path d="M 0,-24 L 0,24 M -24,0 L 24,0 M -17,-17 L 17,17 M -17,17 L 17,-17" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" />
+      <polygon points="0,-27 3,-10 10,-3 27,0 10,3 3,10 0,27 -3,10 -10,3 -27,0 -10,-3 -3,-10" fill="#22d3ee" opacity="0.85" />
+      <polygon points="0,-18 2,-7 7,-2 18,0 7,2 2,7 0,18 -2,7 -7,2 -18,0 -7,-2 -2,-7" fill="#ffffff" />
+    </g>
+
+    <!-- 12-Point Starburst Compass motif inside Right Ring -->
+    <g transform="translate(435, 225)">
+      <circle cx="0" cy="0" r="23" stroke="#ffffff" stroke-opacity="0.3" stroke-width="1" fill="none" />
+      <circle cx="0" cy="0" r="6" fill="#3b82f6" />
+      <!-- Star rays -->
+      <path d="M 0,-24 L 0,24 M -24,0 L 24,0 M -17,-17 L 17,17 M -17,17 L 17,-17" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" />
+      <polygon points="0,-27 3,-10 10,-3 27,0 10,3 3,10 0,27 -3,10 -10,3 -27,0 -10,-3 -3,-10" fill="#22d3ee" opacity="0.85" />
+      <polygon points="0,-18 2,-7 7,-2 18,0 7,2 2,7 0,18 -2,7 -7,2 -18,0 -7,-2 -2,-7" fill="#ffffff" />
+    </g>
+
+    <!-- Sleek crossing cutting blades -->
+    <!-- Blade 1: from bottom left going up right, on top -->
+    <path d="M 310,225 L 372.5,160 Q 413,85 435,30 Q 407,65 352,145 Z" fill="url(#scissor-grad)" />
+    <!-- Blade 2: from bottom right going up left, behind -->
+    <path d="M 435,225 L 372.5,160 Q 332,85 310,30 Q 338,65 393,145 Z" fill="url(#scissor-grad)" />
+
+    <!-- Center pivot pin screw -->
+    <circle cx="372.5" cy="160" r="5" fill="#ffffff" stroke="#bf5af2" stroke-width="1.8" />
+  </g>
+
+  <!-- 3. Cozy House Element (Right hand placement) -->
+  <g class="house-group" filter="url(#soft-glow)">
+    <!-- Base house frame -->
+    <rect x="625" y="125" width="205" height="175" rx="5" fill="url(#house-grad)" />
+    
+    <!-- Bold overhanging eaves pitched roof -->
+    <path d="M 600,125 L 727.5,35 L 855,125 Z" fill="url(#house-grad)" />
+    <!-- Roof fascia highlight line -->
+    <path d="M 600,125 L 727.5,35 L 855,125" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" fill="none" opacity="0.32" />
+
+    <!-- Six classic white square windows -->
+    <!-- Top Left window -->
+    <rect x="646" y="145" width="28" height="34" rx="2.5" fill="#ffffff" fill-opacity="0.18" stroke="#ffffff" stroke-width="2.2" />
+    <line x1="660" y1="145" x2="660" y2="179" stroke="#ffffff" stroke-width="1.6" />
+    <line x1="646" y1="162" x2="674" y2="162" stroke="#ffffff" stroke-width="1.6" />
+
+    <!-- Top Middle window -->
+    <rect x="713.5" y="145" width="28" height="34" rx="2.5" fill="#ffffff" fill-opacity="0.18" stroke="#ffffff" stroke-width="2.2" />
+    <line x1="727.5" y1="145" x2="727.5" y2="179" stroke="#ffffff" stroke-width="1.6" />
+    <line x1="713.5" y1="162" x2="741.5" y2="162" stroke="#ffffff" stroke-width="1.6" />
+
+    <!-- Top Right window -->
+    <rect x="781" y="145" width="28" height="34" rx="2.5" fill="#ffffff" fill-opacity="0.18" stroke="#ffffff" stroke-width="2.2" />
+    <line x1="795" y1="145" x2="795" y2="179" stroke="#ffffff" stroke-width="1.6" />
+    <line x1="781" y1="162" x2="809" y2="162" stroke="#ffffff" stroke-width="1.6" />
+
+    <!-- Bottom Left window -->
+    <rect x="646" y="205" width="28" height="34" rx="2.5" fill="#ffffff" fill-opacity="0.18" stroke="#ffffff" stroke-width="2.2" />
+    <line x1="660" y1="205" x2="660" y2="239" stroke="#ffffff" stroke-width="1.6" />
+    <line x1="646" y1="222" x2="674" y2="222" stroke="#ffffff" stroke-width="1.6" />
+
+    <!-- Bottom Right window -->
+    <rect x="781" y="205" width="28" height="34" rx="2.5" fill="#ffffff" fill-opacity="0.18" stroke="#ffffff" stroke-width="2.2" />
+    <line x1="795" y1="205" x2="795" y2="239" stroke="#ffffff" stroke-width="1.6" />
+    <line x1="781" y1="222" x2="809" y2="222" stroke="#ffffff" stroke-width="1.6" />
+
+    <!-- Cozy Arched Portal Doorway with stairs descending to road -->
+    <!-- Entrance arch outline -->
+    <path d="M 703,300 L 703,220 Q 727.5,198 752,220 L 752,300 Z" fill="#ffffff" fill-opacity="0.25" stroke="#ffffff" stroke-width="2.5" />
+    <path d="M 710,300 L 710,230 Q 727.5,214 745,230 L 745,300 Z" stroke="#ffffff" stroke-width="2.2" fill="none" />
+    <!-- Small elegant brass doorknob -->
+    <circle cx="715" cy="270" r="1.8" fill="#ffffff" />
+
+    <!-- Solid steps overlapping road path gracefully -->
+    <rect x="693" y="300" width="69" height="9" rx="2" fill="#ffffff" stroke="url(#house-grad)" stroke-width="1.5" />
+    <rect x="684" y="309" width="87" height="9" rx="2" fill="#ffffff" stroke="url(#house-grad)" stroke-width="1.5" />
+    <rect x="675" y="318" width="105" height="9" rx="2" fill="#ffffff" stroke="url(#house-grad)" stroke-width="1.5" />
+  </g>
+
+  <!-- 4. The Spectacular "BBTY" Display Wordmark -->
+  <g filter="url(#text-shadow)">
+    <!-- Main gradient text -->
+    <text x="500" y="445" fill="url(#bbty-text-grad)" font-family="'Georgia', 'Times New Roman', 'Times', serif" font-size="124" font-weight="900" text-anchor="middle" letter-spacing="14">BBTY</text>
+    <!-- Crisp white highlights bordering the text for 3D metallic volume -->
+    <text x="500" y="445" fill="none" stroke="#ffffff" stroke-width="1.2" stroke-opacity="0.35" font-family="'Georgia', 'Times New Roman', 'Times', serif" font-size="124" font-weight="900" text-anchor="middle" letter-spacing="14">BBTY</text>
+  </g>
+
+  <!-- 5. Horizontal Arrow separators and "BEAUTY BROUGHT TO YOU!" Subtitle -->
+  <g filter="url(#text-shadow)">
+    <!-- Centered subtitle text -->
+    <text x="500" y="505" fill="#8b5cf6" font-family="'Inter', -apple-system, sans-serif" font-size="28" font-weight="800" text-anchor="middle" letter-spacing="4.8">BEAUTY BROUGHT TO YOU!</text>
+    
+    <!-- Left Hand Separator Line with diamond and circular arrow points -->
+    <g transform="translate(0, 497)">
+      <line x1="55" y1="0" x2="270" y2="0" stroke="#bf5af2" stroke-width="2" stroke-linecap="round" />
+      <circle cx="55" cy="0" r="3.2" fill="#bf5af2" />
+      <!-- Left side diamond arrow tip -->
+      <polygon points="68,-5 73,0 68,5 63,0" fill="#bf5af2" />
+      <polygon points="73,-3 76,0 73,3 70,0" fill="#bf5af2" />
+    </g>
+
+    <!-- Right Hand Separator Line with diamond and circular arrow points -->
+    <g transform="translate(0, 497)">
+      <line x1="730" y1="0" x2="945" y2="0" stroke="#00f2fe" stroke-width="2" stroke-linecap="round" />
+      <circle cx="945" cy="0" r="3.2" fill="#00f2fe" />
+      <!-- Right side diamond arrow tip -->
+      <polygon points="932,-5 937,0 932,5 927,0" fill="#00f2fe" />
+      <polygon points="927,-3 930,0 927,3 924,0" fill="#00f2fe" />
+    </g>
+  </g>
+
+  <!-- 6. Elegant Cursive Tagline "Professional Salon Quality in the Comfort of Your Home" -->
+  <g filter="url(#text-shadow)">
+    <text x="500" y="565" fill="#2f80ed" font-family="'Georgia', 'Times New Roman', 'Playfair Display', serif" font-style="italic" font-size="36" font-weight="500" text-anchor="middle" letter-spacing="1">Professional Salon Quality</text>
+    <text x="500" y="612" fill="#2f80ed" font-family="'Georgia', 'Times New Roman', 'Playfair Display', serif" font-style="italic" font-size="36" font-weight="500" text-anchor="middle" letter-spacing="1">in the Comfort of Your Home</text>
+  </g>
+
+  <!-- 7. Bottom Classical Calligraphic Scrollwork & Lotus Flower Ornament -->
+  <g class="bottom-flourish" filter="url(#soft-glow)">
+    <!-- Symmetrical Left hand vines/curls -->
+    <path d="M 465,665 Q 430,668 400,652 Q 380,642 390,625 Q 398,610 415,622 C 435,635 410,660 365,662 Q 330,664 290,652 Q 275,648 285,638 Q 295,628 310,640" stroke="#8b5cf6" stroke-width="2.2" stroke-linecap="round" fill="none" />
+    <circle cx="310" cy="640" r="2.5" fill="#8b5cf6" />
+    
+    <!-- Symmetrical Right hand vines/curls -->
+    <path d="M 535,665 Q 570,668 600,652 Q 620,642 610,625 Q 602,610 585,622 C 565,635 590,660 635,662 Q 670,664 710,652 Q 725,648 715,638 Q 705,628 690,640" stroke="#00f2fe" stroke-width="2.2" stroke-linecap="round" fill="none" />
+    <circle cx="690" cy="640" r="2.5" fill="#00f2fe" />
+
+    <!-- Center Lotus Petals Assembly -->
+    <g transform="translate(500, 660)">
+      <!-- Center standing petal -->
+      <path d="M 0,-25 Q 8,-7 0,10 Q -8,-7 0,-25 Z" fill="url(#road-grad)" />
+      <!-- Left side overlapping petal outer -->
+      <path d="M 0,10 Q -24,-13 -13,-2 Q -6,6 0,10 Z" fill="#3b82f6" opacity="0.9" />
+      <path d="M 0,10 Q -15,-20 -5,-3 Q -2,4 0,10 Z" fill="#22d3ee" opacity="0.95" />
+      <!-- Right side overlapping petal outer -->
+      <path d="M 0,10 Q 24,-13 13,-2 Q 6,6 0,10 Z" fill="#3b82f6" opacity="0.9" />
+      <path d="M 0,10 Q 15,-20 5,-3 Q 2,4 0,10 Z" fill="#22d3ee" opacity="0.95" />
+      <!-- Little base cup leaf -->
+      <path d="M -16,5 Q 0,16 16,5 Q 12,12 -12,12 Z" fill="#bf5af2" />
+    </g>
+  </g>
+</svg>

@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { safeLocalStorage } from '../lib/safeStorage';
+import { safeCopyToClipboard } from '../lib/safeCopyToClipboard';
 import { 
   X, 
   Gift, 
@@ -33,17 +35,21 @@ export default function ReferFriendModal({ isOpen, onClose }: ReferFriendModalPr
   // Load existing mock/saved referrals upon opening
   useEffect(() => {
     if (isOpen) {
-      const stored = localStorage.getItem('bbty_referral_history');
-      if (stored) {
-        setReferralsList(JSON.parse(stored));
-      } else {
-        // Initial realistic data of successful caregiver coordination shares
-        const initial = [
-          { id: 'ref-1', name: 'Margaret Fletcher (Caregiver)', date: 'June 02, 2026', status: 'Joined Waitlist' },
-          { id: 'ref-2', name: 'Lydia Bennett (Seniors Clinic)', date: 'May 28, 2026', status: 'Priority Hub Invited' }
-        ];
-        setReferralsList(initial);
-        localStorage.setItem('bbty_referral_history', JSON.stringify(initial));
+      try {
+        const stored = safeLocalStorage.getItem('bbty_referral_history');
+        if (stored) {
+          setReferralsList(JSON.parse(stored));
+        } else {
+          // Initial realistic data of successful caregiver coordination shares
+          const initial = [
+            { id: 'ref-1', name: 'Margaret Fletcher (Caregiver)', date: 'June 02, 2026', status: 'Joined Waitlist' },
+            { id: 'ref-2', name: 'Lydia Bennett (Seniors Clinic)', date: 'May 28, 2026', status: 'Priority Hub Invited' }
+          ];
+          setReferralsList(initial);
+          safeLocalStorage.setItem('bbty_referral_history', JSON.stringify(initial));
+        }
+      } catch (err) {
+        console.warn('Failed to access referral history:', err);
       }
     }
   }, [isOpen]);
@@ -62,9 +68,19 @@ export default function ReferFriendModal({ isOpen, onClose }: ReferFriendModalPr
     if (!referrerName) return;
 
     // Build unique customized link
+    const base = typeof window !== 'undefined' ? window.location.origin + window.location.pathname : 'https://beautybroughttoyou.com';
     const nameSlug = encodeURIComponent(referrerName.trim().toLowerCase().replace(/\s+/g, '-'));
     const uniqueId = Math.random().toString(36).substring(2, 6);
-    const link = `https://beautybroughttoyou.com/?ref=${nameSlug || 'ambassador'}-${uniqueId}`;
+    
+    const savedHl = safeLocalStorage.getItem('bbty_saved_headline');
+    const savedTl = safeLocalStorage.getItem('bbty_saved_tagline');
+    
+    const params = new URLSearchParams();
+    params.set('ref', `${nameSlug || 'ambassador'}-${uniqueId}`);
+    if (savedHl) params.set('hl', savedHl);
+    if (savedTl) params.set('tl', savedTl);
+    
+    const link = `${base}?${params.toString()}`;
     
     setGeneratedLink(link);
     setIsGenerated(true);
@@ -79,7 +95,11 @@ export default function ReferFriendModal({ isOpen, onClose }: ReferFriendModalPr
       };
       const updated = [newRef, ...referralsList];
       setReferralsList(updated);
-      localStorage.setItem('bbty_referral_history', JSON.stringify(updated));
+      try {
+        safeLocalStorage.setItem('bbty_referral_history', JSON.stringify(updated));
+      } catch (err) {
+        console.warn('Failed to store referral history:', err);
+      }
     }
   };
 
@@ -88,7 +108,7 @@ export default function ReferFriendModal({ isOpen, onClose }: ReferFriendModalPr
     
     const inviteMessage = `Join the Beauty Brought to You (BBTY) priority launching waitlist! My friend ${referrerName || 'Caregiving Ally'} invited us so we can coordinate salon-grade wellness and gentle styling visits directly at home. Grab priority reservation access here:\n\n${generatedLink}`;
     
-    navigator.clipboard.writeText(inviteMessage).then(() => {
+    safeCopyToClipboard(inviteMessage).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     });

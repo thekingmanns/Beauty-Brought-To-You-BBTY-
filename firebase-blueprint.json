@@ -20,7 +20,7 @@
         },
         "category": {
           "type": "string",
-          "enum": ["client", "family", "facility", "salon_owner", "independent_pro", "graduate"],
+          "enum": ["client_family", "facility_partner", "salon_owner_stylist", "independent_professional", "aspiring_technician"],
           "description": "Categorization of the interest profile."
         },
         "services": {
@@ -38,6 +38,18 @@
         }
       },
       "required": ["name", "email", "phone", "category", "services", "submittedAt"]
+    },
+    "WaitlistStats": {
+      "title": "WaitlistStats",
+      "description": "Global stats holding cumulative landing page registration metrics.",
+      "type": "object",
+      "properties": {
+        "count": {
+          "type": "integer",
+          "description": "Total number of verified waitlist signups."
+        }
+      },
+      "required": ["count"]
     }
   },
   "firestore": {
@@ -46,6 +58,12 @@
         "$ref": "#/entities/WaitlistSubmission"
       },
       "description": "Collection of all beauty and care waitlist registrations."
+    },
+    "/stats/waitlist_stats": {
+      "schema": {
+        "$ref": "#/entities/WaitlistStats"
+      },
+      "description": "Global document tracking total registrations."
     }
   }
 }

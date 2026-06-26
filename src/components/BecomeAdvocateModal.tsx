@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { safeLocalStorage } from '../lib/safeStorage';
 import { 
   X, 
   Heart, 
@@ -43,33 +44,37 @@ export default function BecomeAdvocateModal({ isOpen, onClose }: BecomeAdvocateM
   // Load existing advocate registrations on open
   useEffect(() => {
     if (isOpen) {
-      const stored = localStorage.getItem('bbty_advocate_submissions');
-      if (stored) {
-        setSubmissionsList(JSON.parse(stored));
-      } else {
-        // Initial mock supporters to make the community feel alive and active
-        const initialSubmissions: AdvocateSubmission[] = [
-          { 
-            id: 'adv-1', 
-            name: 'Sarah Jenkins (Neighbourhood Lead)', 
-            email: 'sarah.j@nexthope.org', 
-            location: 'Boston, MA', 
-            primaryMethod: 'offline-brochure', 
-            notes: 'Happy to distribute the offline print brochures to our senior center on weekends!', 
-            date: 'June 10, 2026' 
-          },
-          { 
-            id: 'adv-2', 
-            name: 'Robert Diaz', 
-            email: 'robert.diaz@comcast.net', 
-            location: 'Phoenix, AZ', 
-            primaryMethod: 'facility-connect', 
-            notes: 'My grandmother lives in a local assisted living hub. I will share the PDF with their care manager.', 
-            date: 'June 14, 2026' 
-          }
-        ];
-        setSubmissionsList(initialSubmissions);
-        localStorage.setItem('bbty_advocate_submissions', JSON.stringify(initialSubmissions));
+      try {
+        const stored = safeLocalStorage.getItem('bbty_advocate_submissions');
+        if (stored) {
+          setSubmissionsList(JSON.parse(stored));
+        } else {
+          // Initial mock supporters to make the community feel alive and active
+          const initialSubmissions: AdvocateSubmission[] = [
+            { 
+              id: 'adv-1', 
+              name: 'Sarah Jenkins (Neighbourhood Lead)', 
+              email: 'sarah.j@nexthope.org', 
+              location: 'Boston, MA', 
+              primaryMethod: 'offline-brochure', 
+              notes: 'Happy to distribute the offline print brochures to our senior center on weekends!', 
+              date: 'June 10, 2026' 
+            },
+            { 
+              id: 'adv-2', 
+              name: 'Robert Diaz', 
+              email: 'robert.diaz@comcast.net', 
+              location: 'Phoenix, AZ', 
+              primaryMethod: 'facility-connect', 
+              notes: 'My grandmother lives in a local assisted living hub. I will share the PDF with their care manager.', 
+              date: 'June 14, 2026' 
+            }
+          ];
+          setSubmissionsList(initialSubmissions);
+          safeLocalStorage.setItem('bbty_advocate_submissions', JSON.stringify(initialSubmissions));
+        }
+      } catch (err) {
+        console.warn('Failed to access advocate submissions:', err);
       }
     }
   }, [isOpen]);
@@ -100,7 +105,11 @@ export default function BecomeAdvocateModal({ isOpen, onClose }: BecomeAdvocateM
 
     const updated = [newSubmission, ...submissionsList];
     setSubmissionsList(updated);
-    localStorage.setItem('bbty_advocate_submissions', JSON.stringify(updated));
+    try {
+      safeLocalStorage.setItem('bbty_advocate_submissions', JSON.stringify(updated));
+    } catch (err) {
+      console.warn('Failed to save advocate submission:', err);
+    }
     setIsSubmitted(true);
   };
 

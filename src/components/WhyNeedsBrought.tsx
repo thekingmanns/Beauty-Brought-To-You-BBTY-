@@ -4,26 +4,26 @@ import { Home, ShieldCheck, Heart, Users, Compass, EyeOff, Sparkles, Smile } fro
 export default function WhyNeedsBrought() {
   const challenges = [
     {
-      title: "Traditional Space Limitations",
-      desc: "Many commercial salons claim accessibility compliance, but are rarely designed with the space needed to comfortably position a heavy power-wheelchair, secure walkers, or accommodate limited movement comfortably around standard formatting basins.",
+      title: "Space Limitations",
+      desc: "Many salons lack the space for power wheelchairs, walkers, or comfortable positioning around standard sinks.",
       icon: EyeOff,
       badge: "The salon barrier"
     },
     {
-      title: "Sensory & Cognitive Fatigue",
-      desc: "Commercial salons are often highly stimulating, filled with loud hair-dryers, overlapping sound levels, strong synthetic smells, and rushing footsteps, which can trigger stress for neurodivergent individuals, people with autism, or dementia senior populations.",
+      title: "Sensory Overload",
+      desc: "Salons can be loud and have strong smells, which can add stress for neurodivergent individuals, people with autism, or seniors with dementia.",
       icon: Compass,
       badge: "The environment barrier"
     },
     {
       title: "Lack of Specialized Training",
-      desc: "A typical stylist is qualified to style, but may not be trained in working gently or safely with seniors, clients with tremors, geriatric foot sensitivity, or people who face severe mental or mobility exhaustion.",
+      desc: "Typical stylists may not be trained to safely assist seniors, clients with tremors, or people who face severe mobility exhaustion.",
       icon: ShieldCheck,
       badge: "The safety barrier"
     },
     {
-      title: "Social Disconnection & Isolation",
-      desc: "When self-grooming is neglected due to difficult travel steps, it can erode individual confidence. Everyone deserves to feel clean, respected, and heard. Neglected grooming can lead to feeling unseen or separate from the community.",
+      title: "Social Isolation",
+      desc: "When self-grooming is difficult due to travel, it can lower confidence. Everyone deserves to feel clean, respected, and heard.",
       icon: Users,
       badge: "The dignity barrier"
     }
@@ -31,23 +31,23 @@ export default function WhyNeedsBrought() {
 
   const solutions = [
     {
-      title: "Comfort Zone Servicing",
-      desc: "We align hair, nail, or grooming support with the client's home, assisted facility room, or preferred surroundings. Our safety protocols keep tasks zero-stress.",
+      title: "In-Home Care",
+      desc: "We provide hair, nail, and grooming services in the comfort of your home or care facility.",
       icon: Home,
     },
     {
-      title: "Wellness-Aware Specialists",
-      desc: "Our independent pros and technicians learn mobility-friendly, sensory-aware techniques specifically tailored to honor senior limits, disabilities, and individual pacing.",
+      title: "Trained Specialists",
+      desc: "Our independent professionals use techniques tailored to seniors and individuals with disabilities.",
       icon: Heart,
     },
     {
-      title: "Convenient Beauty Support",
-      desc: "Weekly physical therapy, medical schedules, or simple timing can conflict with long salons. BBTY books around the client, fitting services to their exact needs.",
+      title: "Convenient Scheduling",
+      desc: "We work around your schedule, fitting services to your exact needs without the stress of salon wait times.",
       icon: Sparkles,
     },
     {
-      title: "Dignity & Respect First",
-      desc: "Every touch is centered on human connection. We listen, share stories, and bring respectful care that does not make claims of medical cure but supports high quality of life.",
+      title: "Respect First",
+      desc: "Every visit focuses on human connection. We listen, share stories, and provide respectful, supporting care.",
       icon: Smile,
     }
   ];
@@ -62,10 +62,10 @@ export default function WhyNeedsBrought() {
             Restoring Dignity through Care
           </span>
           <h2 className="text-3xl md:text-5xl font-serif text-slate-900 dark:text-white font-medium tracking-tight mt-3">
-            Why Beauty Needs to Be Brought to the Community
+            Why Beauty Belongs in the Community
           </h2>
           <p className="text-slate-600 dark:text-slate-350 text-base md:text-lg mt-4 leading-relaxed">
-            Going into a high-end salon can be satisfying, but for many, it is physically, sensory, or emotionally impossible. BBTY redefines beauty care as accessible, supportive, and completely centered in the client's space of emotional and physical comfort.
+            Visiting a salon can be difficult or impossible for many. BBTY makes beauty care accessible and supportive, bringing it directly to where you feel most comfortable.
           </p>
         </div>
  

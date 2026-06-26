@@ -3,7 +3,7 @@ export interface WaitlistSubmission {
   name: string;
   email: string;
   phone: string;
-  category: 'client' | 'family' | 'facility' | 'salon_owner' | 'independent_pro' | 'graduate';
+  category: 'client_family' | 'facility_partner' | 'salon_owner_stylist' | 'independent_professional' | 'aspiring_technician';
   services: string[];
   notes?: string;
   submittedAt: string;

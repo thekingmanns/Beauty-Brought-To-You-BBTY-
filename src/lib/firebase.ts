@@ -3,9 +3,25 @@ import { initializeFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import firebaseConfig from "../../firebase-applet-config.json";
 
-const app = initializeApp(firebaseConfig);
-const db = initializeFirestore(app, {}, firebaseConfig.firestoreDatabaseId || "(default)");
-const auth = getAuth(app);
+let app: any = null;
+let db: any = null;
+let auth: any = null;
+let isFirebaseSupported = false;
+
+try {
+  app = initializeApp(firebaseConfig);
+  if (app) {
+    db = initializeFirestore(app, {
+      ignoreUndefinedProperties: true
+    }, firebaseConfig.firestoreDatabaseId || "(default)");
+    auth = getAuth(app);
+    isFirebaseSupported = !!db;
+  }
+} catch (e) {
+  console.warn("Firebase initialization skipped or failed in sandbox iframe environment:", e);
+}
+
+export { db, auth, isFirebaseSupported };
 
 export enum OperationType {
   CREATE = 'create',
@@ -37,12 +53,12 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
   const errInfo: FirestoreErrorInfo = {
     error: error instanceof Error ? error.message : String(error),
     authInfo: {
-      userId: auth.currentUser?.uid || null,
-      email: auth.currentUser?.email || null,
-      emailVerified: auth.currentUser?.emailVerified || null,
-      isAnonymous: auth.currentUser?.isAnonymous || null,
-      tenantId: auth.currentUser?.tenantId || null,
-      providerInfo: auth.currentUser?.providerData?.map(provider => ({
+      userId: auth?.currentUser?.uid || null,
+      email: auth?.currentUser?.email || null,
+      emailVerified: auth?.currentUser?.emailVerified || null,
+      isAnonymous: auth?.currentUser?.isAnonymous || null,
+      tenantId: auth?.currentUser?.tenantId || null,
+      providerInfo: auth?.currentUser?.providerData?.map(provider => ({
         providerId: provider.providerId,
         email: provider.email,
       })) || []
@@ -50,8 +66,5 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
     operationType,
     path
   };
-  console.error('Firestore Error: ', JSON.stringify(errInfo));
-  throw new Error(JSON.stringify(errInfo));
+  console.warn('Firestore Operation Warn/Error handler invoked (graceful fallback):', JSON.stringify(errInfo));
 }
-
-export { db, auth };

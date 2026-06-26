@@ -14,20 +14,20 @@ export default function Facilitators({ activeTab, setActiveTab, onJoinWaitlistCl
       id: 'clients',
       label: 'Clients & Families',
       icon: User,
-      heading: 'Heartfelt Grooming & Comfort—Brought directly to where you live.',
-      sub: 'Bring professional beauty care to your living room, care facility, or backyard.',
-      body: 'Whether seeking regular hair styling, restorative nail care, or general beauty maintenance, BBTY transforms personal grooming into a calming wellness touch of your own choosing. From full hair sets to small details—like an immediate nail trim before an event—we are right there.',
+      heading: 'Care, Comfort & Wellness—Gentle Salon Services Brought Right to Your Door.',
+      sub: 'Bringing compassionate, professional care directly to your living room, bedside, senior residence, or care facility.',
+      body: 'Joining the BBTY family means receiving the high-quality, trusted salon care you deserve, completely customized to your personal pace and physical comfort. Whether you need regular weekly styling, an occasional pampering session, or a quick podiatric-aware nail trim, we eliminate the stress of travel. By joining our priority waitlist today, you secure your spot for home or facility visits as we roll out in your neighborhood. Let us bring relaxation, dignity, and beautiful self-care directly to your comfortable safe space.',
       howItWorks: [
-        'Join our priority waitlist to confirm your interest and local area.',
-        'Upon regional rollout, book appointments through our accessible web app.',
-        'A licensed, fully vetted wellness-aware stylist arrives at your location.',
-        'Enjoy customized grooming in your own chair, couch, or wheelchair configuration.'
+        'Join the priority waitlist by filling out our simple signup form below.',
+        'Specify your requested services, frequency, and personal accommodation needs.',
+        'Get matched with a certified, compassionate, and fully vetted local stylist.',
+        'Enjoy professional, calming beauty services in the complete comfort of home.'
       ],
       points: [
-        'Weekly, biweekly or monthly scheduled visits are fully customizable.',
-        'Trained to accommodate walkers, wheelchairs, and physical stability supports.',
-        'Great for busy families, elderly parents, or people needing brief, specialized companion care.',
-        'Emergency short-run beauty tasks (like fixing a broken acrylic nail) from the convenience of home.'
+        'Perfect for regular scheduled visits, occasional touch-ups, or quick emergency styling needs.',
+        'Stylists specifically trained to work around walkers, wheelchairs, bed bounds, and sensory setups.',
+        'Saves busy families and caregivers from the physical strain and weather hazards of salon travel.',
+        'A soothing, warm, and highly personalized experience that fully respects your home and privacy.'
       ],
       quote: {
         text: "My mom has severe arthritis and going to her local shop became too exhausting. BBTY came directly to her assisted living apartment — the stylist was patient, sweet, and made her hands look beautiful. She felt truly seen.",
@@ -112,22 +112,22 @@ export default function Facilitators({ activeTab, setActiveTab, onJoinWaitlistCl
     },
     {
       id: 'graduates',
-      label: 'New Grads & Careers',
+      label: 'New Grads & BBTY Techs',
       icon: GraduationCap,
-      heading: 'Launch Your Professional Path—Build skills with mentorship and zero booth risk.',
-      sub: 'Graduate with specialized care experience, patient licensing, and instant clientele.',
-      body: 'Are you a recent cosmetology/nail graduate? Avoid commercial rent strain and master real-world care. Become a BBTY employee or join our tech network. Get specialized wellness-aware training to manage, communicate, and support clients with limited mobility.',
+      heading: 'Launch Your Professional Path with Purpose—Zero Booth Rent, Infinite Potential.',
+      sub: 'The ultimate launchpad for new graduates and licensed beauty professionals to build a thriving, loyal client base.',
+      body: 'Transitioning from cosmetology or nail school to a busy salon can feel overwhelming, especially with the immediate financial pressure of high booth rents, commission splits, and marketing costs. At BBTY, we offer you a modern, encouraging pathway to build real-world experience, hone your craftsmanship, and establish a dedicated client list from day one. You\'ll receive specialized, wellness-aware training in compassionate, mobility-safe techniques for seniors and individuals with physical or sensory needs. Join our supportive network to grow your skills, earn a reliable income, and make a deeply meaningful impact without the salon overhead.',
       howItWorks: [
         'Submit a candidate application summarizing your beauty school record.',
-        'Undergo our signature BBTY wellness-aware customer support program.',
-        'Deliver beauty services under professional guidance to gain hours.',
-        'Transition into high-priority, licensed independent contractor matching.'
+        'Complete our certified wellness-aware care and mobility-safety training program.',
+        'Get matched with individual clients or recurring senior-living facility events in your area.',
+        'Grow your professional reputation, expand your hours, and excel with direct career support.'
       ],
       points: [
-        'Bridge the gap from license to real income with immediate local care hours.',
-        'Gain rare, valuable skill-sets: senior hair density care, cognitive pacing, and mobility-friendly protocols.',
-        'No booth rent risk or marketing cost when starting out.',
-        'Mentorship support from senior BBTY professionals throughout your growth.'
+        'Build a reliable, local client base and gain invaluable practical experience with zero booth rent or startup commitment.',
+        'Receive specialized, resume-boosting training in senior hair density, cognitive pacing, and physical stability protocols.',
+        'Enjoy total control over your schedule, competitive payouts, and warm mentorship from seasoned wellness advocates.',
+        'Focus purely on your craft and compassionate care while we manage bookings, client matchmaking, and marketing.'
       ],
       quote: {
         text: "Straight out of clinical cosmetology camp, I dreaded booth rent. BBTY trained me on physical handling safety for wheelchair transfers and gave me clients immediately. I am earning and doing work that touches people.",
